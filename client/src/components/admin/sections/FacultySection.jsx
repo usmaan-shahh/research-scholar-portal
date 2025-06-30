@@ -20,6 +20,8 @@ const FacultySection = () => {
     departmentCode: "",
     designation: "",
     isPhD: false,
+    numberOfPublications: 0,
+    isActive: true,
   });
   const [facultyFilters, setFacultyFilters] = useState({
     departmentCode: "",
@@ -87,6 +89,8 @@ const FacultySection = () => {
         departmentCode: "",
         designation: "",
         isPhD: false,
+        numberOfPublications: 0,
+        isActive: true,
       });
       refetchFaculties();
     } catch (err) {
@@ -102,6 +106,8 @@ const FacultySection = () => {
       departmentCode: faculty.departmentCode,
       designation: faculty.designation,
       isPhD: faculty.isPhD,
+      numberOfPublications: faculty.numberOfPublications ?? 0,
+      isActive: faculty.isActive ?? true,
     });
     setShowFacultyModal(true);
   };
@@ -126,6 +132,8 @@ const FacultySection = () => {
       departmentCode: "",
       designation: "",
       isPhD: false,
+      numberOfPublications: 0,
+      isActive: true,
     });
     setShowFacultyModal(true);
   };

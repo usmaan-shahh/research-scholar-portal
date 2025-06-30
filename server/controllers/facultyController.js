@@ -11,7 +11,15 @@ const getMaxScholars = (designation) => {
 // Create Faculty
 const createFaculty = async (req, res) => {
   try {
-    const { employeeCode, name, departmentCode, designation, isPhD } = req.body;
+    const {
+      employeeCode,
+      name,
+      departmentCode,
+      designation,
+      isPhD,
+      numberOfPublications = 0,
+      isActive = true,
+    } = req.body;
     const existing = await Faculty.findOne({ employeeCode });
     if (existing)
       return res.status(400).json({ message: "Employee code already exists" });
@@ -26,6 +34,8 @@ const createFaculty = async (req, res) => {
       designation,
       isPhD,
       maxScholars,
+      numberOfPublications,
+      isActive,
     });
     res.status(201).json(faculty);
   } catch (err) {
@@ -61,14 +71,31 @@ const getFacultyById = async (req, res) => {
 // Update Faculty
 const updateFaculty = async (req, res) => {
   try {
-    const { employeeCode, name, departmentCode, designation, isPhD } = req.body;
+    const {
+      employeeCode,
+      name,
+      departmentCode,
+      designation,
+      isPhD,
+      numberOfPublications = 0,
+      isActive = true,
+    } = req.body;
     const department = await Department.findOne({ code: departmentCode });
     if (!department)
       return res.status(400).json({ message: "Invalid department code" });
     const maxScholars = getMaxScholars(designation);
     const faculty = await Faculty.findByIdAndUpdate(
       req.params.id,
-      { employeeCode, name, departmentCode, designation, isPhD, maxScholars },
+      {
+        employeeCode,
+        name,
+        departmentCode,
+        designation,
+        isPhD,
+        maxScholars,
+        numberOfPublications,
+        isActive,
+      },
       { new: true, runValidators: true }
     );
     if (!faculty) return res.status(404).json({ message: "Faculty not found" });

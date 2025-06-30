@@ -138,6 +138,39 @@ const FacultyModal = ({
             />
           </div>
 
+          {/* Number of Publications */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">
+              Number of Publications
+            </label>
+            <input
+              type="number"
+              name="numberOfPublications"
+              min="0"
+              value={facultyForm.numberOfPublications || 0}
+              onChange={onChange}
+              className="block w-full rounded-xl border border-gray-300 bg-white/60 shadow-inner focus:border-blue-400 focus:ring-2 focus:ring-blue-200 sm:text-base px-4 py-2 transition"
+            />
+          </div>
+
+          {/* isActive Toggle */}
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              name="isActive"
+              checked={facultyForm.isActive || false}
+              onChange={onChange}
+              className="mr-2 focus:ring-blue-500"
+              id="isActive"
+            />
+            <label
+              htmlFor="isActive"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Active Faculty
+            </label>
+          </div>
+
           <div className="flex justify-end space-x-4 mt-8">
             <button
               type="button"

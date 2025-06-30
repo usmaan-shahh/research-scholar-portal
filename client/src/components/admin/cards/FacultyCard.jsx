@@ -4,6 +4,9 @@ import {
   HiOutlineLocationMarker,
   HiAcademicCap,
   HiCheckCircle,
+  HiBookOpen,
+  HiStatusOnline,
+  HiStatusOffline,
 } from "react-icons/hi";
 import { FiEdit2, FiTrash2 } from "react-icons/fi";
 
@@ -96,14 +99,36 @@ const FacultyCard = ({ faculty, departments, onEdit, onDelete }) => {
               </div>
             </div>
           </div>
+
+          {/* Number of Publications */}
+          <div className="flex items-start">
+            <div className="flex-shrink-0 w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center mr-3">
+              <HiBookOpen className="w-4 h-4 text-gray-500" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-900 mb-1">
+                Publications
+              </p>
+              <p className="text-sm text-gray-600">
+                {faculty.numberOfPublications || 0}
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Action Bar */}
       <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-gray-100 border-t border-gray-200 flex justify-between items-center">
         <div className="flex items-center text-xs text-gray-500">
-          <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-          <span>Active Faculty</span>
+          {faculty.isActive ? (
+            <span className="flex items-center text-green-600 font-semibold">
+              <HiStatusOnline className="w-4 h-4 mr-1" /> Active
+            </span>
+          ) : (
+            <span className="flex items-center text-gray-400 font-semibold">
+              <HiStatusOffline className="w-4 h-4 mr-1" /> Inactive
+            </span>
+          )}
         </div>
         <div className="flex items-center space-x-2">
           <button
