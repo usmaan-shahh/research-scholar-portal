@@ -16,12 +16,15 @@ router.use(protect);
 
 // Scholar routes
 router.post("/", authorize(["admin", "main_office"]), createScholar);
+
 router.get(
   "/",
   authorize(["admin", "main_office", "supervisor", "scholar"]),
   getScholars
 );
+
 router.get("/count", authorize(["admin", "main_office"]), getScholarsCount);
+
 router.get(
   "/:id",
   authorize(["admin", "main_office", "supervisor", "scholar"]),

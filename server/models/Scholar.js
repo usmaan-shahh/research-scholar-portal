@@ -106,8 +106,6 @@ const scholarSchema = new mongoose.Schema(
 
 // Index for better query performance
 scholarSchema.index({ departmentCode: 1, isActive: 1 });
-scholarSchema.index({ rollNo: 1 });
-scholarSchema.index({ regId: 1 });
-scholarSchema.index({ email: 1 });
+// Note: rollNo, regId, and email indexes are automatically created by unique: true constraint
 
 export default mongoose.model("Scholar", scholarSchema);
