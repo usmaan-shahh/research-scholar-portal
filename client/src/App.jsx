@@ -14,6 +14,7 @@ import HeadDashboard from "./components/dashboards/HeadDashboard";
 import SRACMemberDashboard from "./components/dashboards/SRACMemberDashboard";
 import DRCChairDashboard from "./components/dashboards/DRCChairDashboard";
 import Login from "./components/auth/Login";
+import ChangePassword from "./components/auth/ChangePassword";
 
 function App() {
   return (
@@ -23,6 +24,16 @@ function App() {
         <Routes>
           {/* Public Routes */}
           <Route path="/login" element={<Login />} />
+
+          {/* Password Change Route - Must be before other protected routes */}
+          <Route
+            path="/change-password"
+            element={
+              <PrivateRoute allowedRoles={["admin", "main_office", "office_staff", "scholar", "supervisor", "drc_member", "head", "srac_member", "drc_chair"]}>
+                <ChangePassword />
+              </PrivateRoute>
+            }
+          />
 
           {/* Protected Dashboard Routes */}
           <Route

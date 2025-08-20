@@ -30,6 +30,12 @@ const Login = () => {
       const userData = await login(formData).unwrap();
       dispatch(setCredentials(userData));
 
+      // Check if user needs to change password
+      if (userData.mustChangePassword) {
+        navigate("/change-password");
+        return;
+      }
+
       // Map role to correct route path
       const roleRoutes = {
         office_staff: "/office-staff",

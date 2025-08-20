@@ -12,7 +12,6 @@ export const userApi = createApi({
       query: () => ({
         url: "/users",
         method: "GET",
-        credentials: "include",
       }),
       transformResponse: (response) => {
         console.log("API Response:", response);
@@ -29,7 +28,6 @@ export const userApi = createApi({
         url: "/users",
         method: "POST",
         body: userData,
-        credentials: "include",
       }),
       invalidatesTags: ["User"],
     }),
@@ -38,7 +36,6 @@ export const userApi = createApi({
         url: `/users/${id}`,
         method: "PUT",
         body: userData,
-        credentials: "include",
       }),
       invalidatesTags: ["User"],
     }),
@@ -46,7 +43,6 @@ export const userApi = createApi({
       query: (id) => ({
         url: `/users/${id}`,
         method: "DELETE",
-        credentials: "include",
       }),
       invalidatesTags: ["User"],
     }),
@@ -56,7 +52,6 @@ export const userApi = createApi({
         url: "/users/main-office",
         method: "POST",
         body: { departmentCode, tempPassword },
-        credentials: "include",
       }),
       invalidatesTags: ["User"],
     }),
@@ -65,7 +60,6 @@ export const userApi = createApi({
         url: "/users/main-office/reset-password",
         method: "POST",
         body: { departmentCode, tempPassword },
-        credentials: "include",
       }),
       invalidatesTags: ["User"],
     }),
@@ -74,7 +68,6 @@ export const userApi = createApi({
         url: "/auth/change-password",
         method: "POST",
         body: { currentPassword, newPassword },
-        credentials: "include",
       }),
     }),
   }),

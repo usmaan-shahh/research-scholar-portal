@@ -14,7 +14,7 @@ import { HiUser } from "react-icons/hi";
 const FacultySection = ({
   lockedDepartmentCode = "",
   hideFilters = false,
-  title = "Faculty Management",
+  title = "Faculty Section",
 }) => {
   const [showFacultyModal, setShowFacultyModal] = useState(false);
   const [editingFaculty, setEditingFaculty] = useState(null);
@@ -167,7 +167,7 @@ const FacultySection = ({
           onClick={handleFacultyAdd}
           className="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold shadow hover:bg-blue-700 transition-all duration-150"
         >
-          Add Faculty
+          Add New Faculty
         </button>
       </div>
 
