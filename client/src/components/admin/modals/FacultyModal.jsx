@@ -10,8 +10,14 @@ const FacultyModal = ({
   onClose,
   onSubmit,
   onChange,
+  lockedDepartmentCode = "",
 }) => {
   if (!showModal) return null;
+
+  const departmentName = lockedDepartmentCode
+    ? departments.find((d) => d.code === lockedDepartmentCode)?.name ||
+      lockedDepartmentCode
+    : departments.find((d) => d.code === facultyForm.departmentCode)?.name;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
@@ -69,20 +75,29 @@ const FacultyModal = ({
             <label className="block text-sm font-semibold text-gray-700 mb-1">
               Department
             </label>
-            <select
-              name="departmentCode"
-              required
-              value={facultyForm.departmentCode}
-              onChange={onChange}
-              className="block w-full rounded-xl border border-gray-300 bg-white/60 shadow-inner focus:border-blue-400 focus:ring-2 focus:ring-blue-200 sm:text-base px-4 py-2 transition"
-            >
-              <option value="">Select Department</option>
-              {departments.map((dept) => (
-                <option key={dept.code} value={dept.code}>
-                  {dept.name}
-                </option>
-              ))}
-            </select>
+            {lockedDepartmentCode ? (
+              <input
+                type="text"
+                readOnly
+                value={`${departmentName} (${lockedDepartmentCode})`}
+                className="block w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2"
+              />
+            ) : (
+              <select
+                name="departmentCode"
+                required
+                value={facultyForm.departmentCode}
+                onChange={onChange}
+                className="block w-full rounded-xl border border-gray-300 bg-white/60 shadow-inner focus:border-blue-400 focus:ring-2 focus:ring-blue-200 sm:text-base px-4 py-2 transition"
+              >
+                <option value="">Select Department</option>
+                {departments.map((dept) => (
+                  <option key={dept.code} value={dept.code}>
+                    {dept.name}
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
 
           <div>

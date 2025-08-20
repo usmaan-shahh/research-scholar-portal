@@ -61,10 +61,19 @@ export const register = async (req, res) => {
 
 export const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, username, identifier, password } = req.body;
 
-    // Find user
-    const user = await User.findOne({ email });
+    const id = (identifier || username || email || "").toLowerCase();
+    if (!id || !password) {
+      return res
+        .status(400)
+        .json({ message: "Identifier and password are required" });
+    }
+
+    // Find user by username or email
+    const user = await User.findOne({
+      $or: [{ email: id }, { username: id }],
+    });
     if (!user) {
       return res.status(401).json({ message: "Invalid credentials" });
     }

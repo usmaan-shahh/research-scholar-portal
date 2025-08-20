@@ -55,7 +55,7 @@ function App() {
           <Route
             path="/office-staff/*"
             element={
-              <PrivateRoute allowedRoles={["office_staff"]}>
+              <PrivateRoute allowedRoles={["office_staff", "main_office"]}>
                 <OfficeStaffDashboard />
               </PrivateRoute>
             }

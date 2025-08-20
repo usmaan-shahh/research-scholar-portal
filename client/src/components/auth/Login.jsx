@@ -6,7 +6,7 @@ import { setCredentials } from "../../slices/authSlice";
 
 const Login = () => {
   const [formData, setFormData] = useState({
-    email: "",
+    identifier: "",
     password: "",
   });
   const [error, setError] = useState("");
@@ -40,6 +40,7 @@ const Login = () => {
         head: "/head",
         srac_member: "/srac-member",
         drc_chair: "/drc-chair",
+        main_office: "/office-staff",
       };
 
       navigate(roleRoutes[userData.role] || "/login");
@@ -66,13 +67,13 @@ const Login = () => {
 
           <div className="rounded-md shadow-sm space-y-4">
             <input
-              name="email"
-              type="email"
+              name="identifier"
+              type="text"
               required
-              value={formData.email}
+              value={formData.identifier}
               onChange={handleChange}
               className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-              placeholder="Email address"
+              placeholder="Email or Username"
             />
 
             <input
