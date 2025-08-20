@@ -5,6 +5,8 @@ import {
   updateUser,
   deleteUser,
   getUserById,
+  createMainOfficeUser,
+  resetMainOfficePassword,
 } from "../controllers/userController.js";
 import { protect, authorize } from "../middleware/authMiddleware.js";
 
@@ -29,5 +31,9 @@ router.get("/:id", getUserById);
 router.post("/", createUser);
 router.put("/:id", updateUser);
 router.delete("/:id", deleteUser);
+
+// Main Office User routes
+router.post("/main-office", createMainOfficeUser);
+router.post("/main-office/reset-password", resetMainOfficePassword);
 
 export default router;

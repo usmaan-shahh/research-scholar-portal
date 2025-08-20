@@ -33,6 +33,19 @@ export const protect = async (req, res, next) => {
           .json({ message: "Not authorized, user is inactive" });
       }
 
+      // Enforce password change flow
+      const originalUrl = req.originalUrl || "";
+      const isChangePassword =
+        req.method === "POST" &&
+        originalUrl.includes("/api/auth/change-password");
+      if (user.mustChangePassword && !isChangePassword) {
+        return res.status(403).json({
+          message:
+            "Password reset required. Please change your password to continue.",
+          mustChangePassword: true,
+        });
+      }
+
       // Add user to request object
       req.user = user;
       console.log("User attached to request:", req.user._id);

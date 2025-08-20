@@ -1,4 +1,6 @@
 import User from "../models/User.js";
+import Department from "../models/Department.js";
+import crypto from "crypto";
 
 export const getUsers = async (req, res) => {
   console.log("=== getUsers function called ===");
@@ -150,5 +152,96 @@ export const getUserById = async (req, res) => {
   } catch (error) {
     console.error("Error fetching user:", error);
     res.status(500).json({ message: "Error fetching user" });
+  }
+};
+
+const generateTempPassword = () =>
+  crypto
+    .randomBytes(9)
+    .toString("base64")
+    .replace(/[^A-Za-z0-9]/g, "A")
+    .slice(0, 12);
+
+export const createMainOfficeUser = async (req, res) => {
+  try {
+    const { departmentCode, tempPassword } = req.body;
+    if (!departmentCode) {
+      return res.status(400).json({ message: "departmentCode is required" });
+    }
+
+    const department = await Department.findOne({ code: departmentCode });
+    if (!department) {
+      return res.status(400).json({ message: "Invalid department code" });
+    }
+
+    const username = `office_${departmentCode.toLowerCase()}`;
+
+    const existing = await User.findOne({
+      role: "main_office",
+      departmentCode,
+    });
+    if (existing) {
+      return res
+        .status(409)
+        .json({
+          message: `Main Office User already exists for ${departmentCode}`,
+        });
+    }
+
+    const password = tempPassword || generateTempPassword();
+
+    const user = await User.create({
+      name: `Main Office ${department.name}`,
+      email: `${username}@example.com`,
+      username,
+      password,
+      role: "main_office",
+      department: department.name,
+      departmentCode,
+      isActive: true,
+      mustChangePassword: true,
+    });
+
+    return res.status(201).json({
+      id: user._id,
+      username: user.username,
+      departmentCode: user.departmentCode,
+      role: user.role,
+      mustChangePassword: user.mustChangePassword,
+      tempPassword: tempPassword ? undefined : password,
+    });
+  } catch (error) {
+    console.error("createMainOfficeUser error:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const resetMainOfficePassword = async (req, res) => {
+  try {
+    const { departmentCode, tempPassword } = req.body;
+    if (!departmentCode) {
+      return res.status(400).json({ message: "departmentCode is required" });
+    }
+
+    const user = await User.findOne({ role: "main_office", departmentCode });
+    if (!user) {
+      return res.status(404).json({ message: "Main Office User not found" });
+    }
+
+    const newPassword = tempPassword || generateTempPassword();
+    user.password = newPassword;
+    user.mustChangePassword = true;
+    await user.save();
+
+    return res.status(200).json({
+      id: user._id,
+      username: user.username,
+      departmentCode: user.departmentCode,
+      mustChangePassword: user.mustChangePassword,
+      tempPassword: tempPassword ? undefined : newPassword,
+    });
+  } catch (error) {
+    console.error("resetMainOfficePassword error:", error);
+    return res.status(500).json({ message: "Server error" });
   }
 };

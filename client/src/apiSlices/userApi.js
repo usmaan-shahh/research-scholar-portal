@@ -50,6 +50,33 @@ export const userApi = createApi({
       }),
       invalidatesTags: ["User"],
     }),
+    // Main Office User APIs
+    createMainOfficeUser: builder.mutation({
+      query: ({ departmentCode, tempPassword }) => ({
+        url: "/users/main-office",
+        method: "POST",
+        body: { departmentCode, tempPassword },
+        credentials: "include",
+      }),
+      invalidatesTags: ["User"],
+    }),
+    resetMainOfficePassword: builder.mutation({
+      query: ({ departmentCode, tempPassword }) => ({
+        url: "/users/main-office/reset-password",
+        method: "POST",
+        body: { departmentCode, tempPassword },
+        credentials: "include",
+      }),
+      invalidatesTags: ["User"],
+    }),
+    changePassword: builder.mutation({
+      query: ({ currentPassword, newPassword }) => ({
+        url: "/auth/change-password",
+        method: "POST",
+        body: { currentPassword, newPassword },
+        credentials: "include",
+      }),
+    }),
   }),
 });
 
@@ -58,4 +85,7 @@ export const {
   useCreateUserMutation,
   useUpdateUserMutation,
   useDeleteUserMutation,
+  useCreateMainOfficeUserMutation,
+  useResetMainOfficePasswordMutation,
+  useChangePasswordMutation,
 } = userApi;

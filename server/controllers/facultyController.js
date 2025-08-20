@@ -20,6 +20,17 @@ const createFaculty = async (req, res) => {
       numberOfPublications = 0,
       isActive = true,
     } = req.body;
+
+    // RBAC: main_office can only create within their department
+    if (
+      req.user?.role === "main_office" &&
+      req.user.departmentCode !== departmentCode
+    ) {
+      return res
+        .status(403)
+        .json({ message: "Forbidden: department mismatch" });
+    }
+
     const existing = await Faculty.findOne({ employeeCode });
     if (existing)
       return res.status(400).json({ message: "Employee code already exists" });
@@ -50,6 +61,12 @@ const getFaculties = async (req, res) => {
     let filter = {};
     if (departmentCode) filter.departmentCode = departmentCode;
     if (designation) filter.designation = designation;
+
+    // RBAC: main_office only sees own department
+    if (req.user?.role === "main_office") {
+      filter.departmentCode = req.user.departmentCode;
+    }
+
     const faculties = await Faculty.find(filter);
     res.json(faculties);
   } catch (err) {
@@ -62,6 +79,14 @@ const getFacultyById = async (req, res) => {
   try {
     const faculty = await Faculty.findById(req.params.id);
     if (!faculty) return res.status(404).json({ message: "Faculty not found" });
+
+    if (
+      req.user?.role === "main_office" &&
+      faculty.departmentCode !== req.user.departmentCode
+    ) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
     res.json(faculty);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -80,6 +105,19 @@ const updateFaculty = async (req, res) => {
       numberOfPublications = 0,
       isActive = true,
     } = req.body;
+
+    const existingFaculty = await Faculty.findById(req.params.id);
+    if (!existingFaculty)
+      return res.status(404).json({ message: "Faculty not found" });
+
+    // RBAC: main_office can only update within their department
+    if (
+      req.user?.role === "main_office" &&
+      existingFaculty.departmentCode !== req.user.departmentCode
+    ) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
     const department = await Department.findOne({ code: departmentCode });
     if (!department)
       return res.status(400).json({ message: "Invalid department code" });
@@ -108,8 +146,18 @@ const updateFaculty = async (req, res) => {
 // Delete Faculty
 const deleteFaculty = async (req, res) => {
   try {
-    const faculty = await Faculty.findByIdAndDelete(req.params.id);
-    if (!faculty) return res.status(404).json({ message: "Faculty not found" });
+    const existingFaculty = await Faculty.findById(req.params.id);
+    if (!existingFaculty)
+      return res.status(404).json({ message: "Faculty not found" });
+
+    if (
+      req.user?.role === "main_office" &&
+      existingFaculty.departmentCode !== req.user.departmentCode
+    ) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    await existingFaculty.deleteOne();
     res.json({ message: "Faculty deleted" });
   } catch (err) {
     res.status(500).json({ message: err.message });

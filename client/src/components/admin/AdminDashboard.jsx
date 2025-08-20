@@ -2,10 +2,12 @@ import React, { useState } from "react";
 import { FaUniversity } from "react-icons/fa";
 import DepartmentSection from "./sections/DepartmentSection";
 import FacultySection from "./sections/FacultySection";
+import UserManagementSection from "./sections/UserManagementSection";
 
 const TABS = {
   DEPARTMENTS: "Department Section",
   FACULTY: "Faculty Section",
+  USERS: "User Management",
 };
 
 const AdminDashboard = () => {
@@ -46,6 +48,7 @@ const AdminDashboard = () => {
       <div className="max-w-5xl mx-auto">
         {activeTab === TABS.DEPARTMENTS && <DepartmentSection />}
         {activeTab === TABS.FACULTY && <FacultySection />}
+        {activeTab === TABS.USERS && <UserManagementSection />}
       </div>
     </div>
   );
