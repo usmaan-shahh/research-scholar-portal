@@ -14,7 +14,6 @@ export const userApi = createApi({
         method: "GET",
       }),
       transformResponse: (response) => {
-        console.log("API Response:", response);
         return response;
       },
       transformErrorResponse: (response) => {

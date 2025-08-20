@@ -273,11 +273,9 @@ export const updateScholar = async (req, res) => {
         const effectiveDeptCode =
           departmentCode || existingScholar.departmentCode;
         if (coSupervisorFaculty.departmentCode !== effectiveDeptCode) {
-          return res
-            .status(400)
-            .json({
-              message: "Co-supervisor must be from the same department",
-            });
+          return res.status(400).json({
+            message: "Co-supervisor must be from the same department",
+          });
         }
       }
     }

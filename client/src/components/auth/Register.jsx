@@ -44,8 +44,6 @@ const Register = () => {
         role: formData.role,
       }).unwrap();
 
-      console.log("Registration response:", userData);
-
       dispatch(setCredentials(userData));
 
       // Map role to correct route path
@@ -59,9 +57,6 @@ const Register = () => {
         srac_member: "/srac-member",
         drc_chair: "/drc-chair",
       };
-
-      console.log("User role:", userData.role);
-      console.log("Selected route:", roleRoutes[userData.role]);
 
       navigate(roleRoutes[userData.role] || "/login");
     } catch (err) {

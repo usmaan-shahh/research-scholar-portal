@@ -7,13 +7,9 @@ dotenv.config();
 const createAdmin = async () => {
   try {
     // Connect to MongoDB
-    console.log("Attempting to connect to MongoDB...");
-    console.log("Connection string:", process.env.conn_string);
     await mongoose.connect(process.env.conn_string);
-    console.log("Connected to MongoDB successfully");
 
     // Check if admin already exists
-    console.log("Checking for existing admin user...");
     const adminExists = await User.findOne({ role: "admin" });
     if (adminExists) {
       console.log("Admin user already exists with email:", adminExists.email);
@@ -21,7 +17,6 @@ const createAdmin = async () => {
     }
 
     // Create admin user
-    console.log("Creating new admin user...");
     const adminUser = new User({
       name: "Admin User",
       email: "admin@gmail.com",
@@ -38,10 +33,6 @@ const createAdmin = async () => {
 
     // Verify the user was saved
     const savedAdmin = await User.findOne({ email: "admin@gmail.com" });
-    console.log(
-      "Verification - Admin user found in database:",
-      savedAdmin ? "Yes" : "No"
-    );
     if (savedAdmin) {
       console.log("Saved admin details:", {
         email: savedAdmin.email,

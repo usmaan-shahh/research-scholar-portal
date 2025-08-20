@@ -3,24 +3,15 @@ import Department from "../models/Department.js";
 import crypto from "crypto";
 
 export const getUsers = async (req, res) => {
-  console.log("=== getUsers function called ===");
-  console.log("Request user:", req.user);
-
   try {
-    console.log("Attempting to fetch users from database...");
     const users = await User.find({})
       .select("-password")
       .sort({ createdAt: -1 }); // Sort by newest first
 
-    console.log("Users found:", users.length);
-    console.log("First user (if any):", users[0]);
-
     if (!users || users.length === 0) {
-      console.log("No users found in database");
       return res.status(200).json([]);
     }
 
-    console.log("Sending response with users");
     res.status(200).json(users);
   } catch (error) {
     console.error("Error in getUsers:", error);

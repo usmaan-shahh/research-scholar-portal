@@ -33,13 +33,11 @@ const ChangePassword = () => {
   // Handle navigation after state update
   useEffect(() => {
     if (shouldNavigate && navigationPath) {
-      console.log("Navigating to:", navigationPath);
       try {
         navigate(navigationPath);
         // Fallback navigation using window.location if navigate fails
         setTimeout(() => {
           if (window.location.pathname !== navigationPath) {
-            console.log("Navigate failed, using window.location fallback");
             window.location.href = navigationPath;
           }
         }, 1000);
@@ -85,32 +83,22 @@ const ChangePassword = () => {
     }
 
     try {
-      console.log("Submitting password change...");
       await changePassword({
         currentPassword: formData.currentPassword,
         newPassword: formData.newPassword,
       }).unwrap();
 
-      console.log("Password changed successfully, updating state...");
-
       // Update the user state to reflect password change
       dispatch(updateUserField({ mustChangePassword: false }));
 
-      console.log("State updated, showing success message...");
       toast.success("Password changed successfully!");
-
-      console.log("Current user state:", user);
-      console.log("About to navigate to dashboard...");
 
       // Set navigation path and trigger navigation
       if (user?.role === "main_office") {
-        console.log("Setting navigation to office-staff dashboard...");
         setNavigationPath("/office-staff");
       } else if (user?.role === "admin") {
-        console.log("Setting navigation to admin dashboard...");
         setNavigationPath("/admin");
       } else {
-        console.log("Setting navigation to root...");
         setNavigationPath("/");
       }
 
