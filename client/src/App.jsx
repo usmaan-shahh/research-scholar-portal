@@ -7,6 +7,7 @@ import "react-toastify/dist/ReactToastify.css";
 import PrivateRoute from "./routes/PrivateRoute";
 import AdminDashboard from "./components/admin/AdminDashboard";
 import OfficeStaffDashboard from "./components/dashboards/OfficeStaffDashboard";
+import DRCChairDashboard from "./components/dashboards/DRCChairDashboard";
 import Login from "./components/auth/Login";
 import ChangePassword from "./components/auth/ChangePassword";
 
@@ -23,7 +24,9 @@ function App() {
           <Route
             path="/change-password"
             element={
-              <PrivateRoute allowedRoles={["admin", "main_office", "office_staff"]}>
+              <PrivateRoute
+                allowedRoles={["admin", "main_office", "office_staff"]}
+              >
                 <ChangePassword />
               </PrivateRoute>
             }
@@ -44,6 +47,16 @@ function App() {
             element={
               <PrivateRoute allowedRoles={["office_staff", "main_office"]}>
                 <OfficeStaffDashboard />
+              </PrivateRoute>
+            }
+          />
+
+          {/* DRC Chair Route */}
+          <Route
+            path="/drc-chair/*"
+            element={
+              <PrivateRoute allowedRoles={["drc_chair"]}>
+                <DRCChairDashboard />
               </PrivateRoute>
             }
           />

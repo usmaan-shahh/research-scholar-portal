@@ -19,11 +19,15 @@ router.post("/", authorize(["admin", "main_office"]), createScholar);
 
 router.get(
   "/",
-  authorize(["admin", "main_office", "supervisor", "scholar"]),
+  authorize(["admin", "main_office", "supervisor", "scholar", "drc_chair"]),
   getScholars
 );
 
-router.get("/count", authorize(["admin", "main_office"]), getScholarsCount);
+router.get(
+  "/count",
+  authorize(["admin", "main_office", "drc_chair"]),
+  getScholarsCount
+);
 
 router.get(
   "/:id",

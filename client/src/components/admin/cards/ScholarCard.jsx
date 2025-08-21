@@ -1,7 +1,14 @@
 import React, { useState } from "react";
 import { HiPencil, HiTrash, HiEye, HiAcademicCap } from "react-icons/hi";
 
-const ScholarCard = ({ scholar, faculties, onEdit, onDelete }) => {
+const ScholarCard = ({
+  scholar,
+  faculties,
+  onEdit,
+  onDelete,
+  onSupervisorAssignment = null,
+  userRole = "",
+}) => {
   const [showProfile, setShowProfile] = useState(false);
 
   const formatDate = (dateString) => {
@@ -160,6 +167,35 @@ const ScholarCard = ({ scholar, faculties, onEdit, onDelete }) => {
             <span>{showProfile ? "Hide" : "View"} Profile</span>
           </button>
           <div className="flex space-x-2">
+            {/* Supervisor Assignment Button for DRC Chair */}
+            {userRole === "drc_chair" && onSupervisorAssignment && (
+              <button
+                onClick={() => onSupervisorAssignment(scholar)}
+                className={`p-2 rounded-lg transition-colors ${
+                  scholar.supervisor
+                    ? "text-green-600 hover:bg-green-50"
+                    : "text-yellow-600 hover:bg-yellow-50"
+                }`}
+                title={
+                  scholar.supervisor ? "Change Supervisor" : "Assign Supervisor"
+                }
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
+                  />
+                </svg>
+              </button>
+            )}
+
             <button
               onClick={() => onEdit(scholar)}
               className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"

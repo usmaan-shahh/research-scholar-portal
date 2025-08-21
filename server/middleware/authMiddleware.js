@@ -61,11 +61,22 @@ export const authorize = (...roles) => {
     // Flatten the roles array if it's nested
     const flatRoles = roles.flat();
 
+    console.log("=== Authorization Debug ===");
+    console.log("User:", req.user);
+    console.log("User role:", req.user?.role);
+    console.log("Required roles:", flatRoles);
+    console.log("Route:", req.originalUrl);
+    console.log("Method:", req.method);
+    console.log("Is authorized:", flatRoles.includes(req.user?.role));
+    console.log("==========================");
+
     if (!flatRoles.includes(req.user?.role)) {
       return res.status(403).json({
         message: `User role ${req.user?.role} is not authorized to access this route`,
         userRole: req.user?.role,
         requiredRoles: flatRoles,
+        route: req.originalUrl,
+        method: req.method,
       });
     }
 
