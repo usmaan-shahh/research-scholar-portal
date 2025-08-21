@@ -7,10 +7,15 @@ import {
   HiBookOpen,
   HiStatusOnline,
   HiStatusOffline,
+  HiShieldCheck,
+  HiShieldExclamation,
 } from "react-icons/hi";
 import { FiEdit2, FiTrash2 } from "react-icons/fi";
 
 const FacultyCard = ({ faculty, departments, onEdit, onDelete }) => {
+  // Determine supervision eligibility
+  const isEligible = faculty.isEligibleForSupervision;
+  
   return (
     <div className="group relative bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1 w-full min-w-[320px]">
       {/* Gradient accent bar */}
@@ -70,6 +75,36 @@ const FacultyCard = ({ faculty, departments, onEdit, onDelete }) => {
               </p>
               <p className="text-sm text-gray-600 break-words">
                 {faculty.designation}
+              </p>
+            </div>
+          </div>
+
+          {/* Supervision Eligibility */}
+          <div className="flex items-start">
+            <div className="flex-shrink-0 w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center mr-3">
+              {isEligible ? (
+                <HiShieldCheck className="w-4 h-4 text-green-500" />
+              ) : (
+                <HiShieldExclamation className="w-4 h-4 text-amber-500" />
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-900 mb-1">
+                Supervision Eligibility
+              </p>
+              <div className="flex items-center justify-between">
+                <span
+                  className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
+                    isEligible
+                      ? "bg-green-100 text-green-800 border border-green-200"
+                      : "bg-amber-100 text-amber-800 border border-amber-200"
+                  }`}
+                >
+                  {isEligible ? "Eligible" : "Not Eligible"}
+                </span>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                {faculty.eligibilityReason}
               </p>
             </div>
           </div>

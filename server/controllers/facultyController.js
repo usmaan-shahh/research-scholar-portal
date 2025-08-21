@@ -8,6 +8,43 @@ const getMaxScholars = (designation) => {
   return 0;
 };
 
+// Helper function to compute supervision eligibility
+const computeSupervisionEligibility = (faculty) => {
+  // Must have PhD to be eligible
+  if (!faculty.isPhD) {
+    return {
+      isEligible: false,
+      reason: "PhD required for supervision",
+    };
+  }
+
+  // Check publication requirements based on designation
+  switch (faculty.designation) {
+    case "Professor":
+    case "Associate Professor":
+      const isEligible = faculty.numberOfPublications > 5;
+      return {
+        isEligible,
+        reason: isEligible
+          ? "Eligible for supervision"
+          : `Requires more than 5 publications (current: ${faculty.numberOfPublications})`,
+      };
+    case "Assistant Professor":
+      const isEligibleAsst = faculty.numberOfPublications > 3;
+      return {
+        isEligible: isEligibleAsst,
+        reason: isEligibleAsst
+          ? "Eligible for supervision"
+          : `Requires more than 3 publications (current: ${faculty.numberOfPublications})`,
+      };
+    default:
+      return {
+        isEligible: false,
+        reason: "Invalid designation",
+      };
+  }
+};
+
 // Create Faculty
 const createFaculty = async (req, res) => {
   try {
@@ -48,7 +85,17 @@ const createFaculty = async (req, res) => {
       numberOfPublications,
       isActive,
     });
-    res.status(201).json(faculty);
+
+    // Add computed fields to response
+    const facultyObj = faculty.toObject();
+    const eligibility = computeSupervisionEligibility(faculty);
+    const response = {
+      ...facultyObj,
+      isEligibleForSupervision: eligibility.isEligible,
+      eligibilityReason: eligibility.reason,
+    };
+
+    res.status(201).json(response);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -57,7 +104,7 @@ const createFaculty = async (req, res) => {
 // Get all Faculties (with optional filters)
 const getFaculties = async (req, res) => {
   try {
-    const { departmentCode, designation } = req.query;
+    const { departmentCode, designation, supervisionEligibility } = req.query;
     let filter = {};
     if (departmentCode) filter.departmentCode = departmentCode;
     if (designation) filter.designation = designation;
@@ -67,8 +114,33 @@ const getFaculties = async (req, res) => {
       filter.departmentCode = req.user.departmentCode;
     }
 
-    const faculties = await Faculty.find(filter);
-    res.json(faculties);
+    let faculties = await Faculty.find(filter);
+
+    // Apply supervision eligibility filter if specified
+    if (supervisionEligibility) {
+      faculties = faculties.filter((faculty) => {
+        const eligibility = computeSupervisionEligibility(faculty);
+        if (supervisionEligibility === "eligible") {
+          return eligibility.isEligible;
+        } else if (supervisionEligibility === "not-eligible") {
+          return !eligibility.isEligible;
+        }
+        return true;
+      });
+    }
+
+    // Add computed fields to each faculty
+    const facultiesWithEligibility = faculties.map((faculty) => {
+      const facultyObj = faculty.toObject();
+      const eligibility = computeSupervisionEligibility(faculty);
+      return {
+        ...facultyObj,
+        isEligibleForSupervision: eligibility.isEligible,
+        eligibilityReason: eligibility.reason,
+      };
+    });
+
+    res.json(facultiesWithEligibility);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -87,7 +159,16 @@ const getFacultyById = async (req, res) => {
       return res.status(403).json({ message: "Forbidden" });
     }
 
-    res.json(faculty);
+    // Add computed fields to response
+    const facultyObj = faculty.toObject();
+    const eligibility = computeSupervisionEligibility(faculty);
+    const response = {
+      ...facultyObj,
+      isEligibleForSupervision: eligibility.isEligible,
+      eligibilityReason: eligibility.reason,
+    };
+
+    res.json(response);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -137,7 +218,17 @@ const updateFaculty = async (req, res) => {
       { new: true, runValidators: true }
     );
     if (!faculty) return res.status(404).json({ message: "Faculty not found" });
-    res.json(faculty);
+
+    // Add computed fields to response
+    const facultyObj = faculty.toObject();
+    const eligibility = computeSupervisionEligibility(faculty);
+    const response = {
+      ...facultyObj,
+      isEligibleForSupervision: eligibility.isEligible,
+      eligibilityReason: eligibility.reason,
+    };
+
+    res.json(response);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

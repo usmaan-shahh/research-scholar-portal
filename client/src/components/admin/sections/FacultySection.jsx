@@ -9,7 +9,7 @@ import {
 import { useGetDepartmentsQuery } from "../../../apiSlices/departmentApi";
 import FacultyCard from "../cards/FacultyCard";
 import FacultyModal from "../modals/FacultyModal";
-import { HiUser } from "react-icons/hi";
+import { HiUser, HiCheckCircle, HiAcademicCap } from "react-icons/hi";
 
 const FacultySection = ({
   lockedDepartmentCode = "",
@@ -30,6 +30,7 @@ const FacultySection = ({
   const [facultyFilters, setFacultyFilters] = useState({
     departmentCode: lockedDepartmentCode || "",
     designation: "",
+    supervisionEligibility: "",
   });
 
   const {
@@ -42,6 +43,7 @@ const FacultySection = ({
       ? {
           departmentCode: lockedDepartmentCode,
           designation: facultyFilters.designation,
+          supervisionEligibility: facultyFilters.supervisionEligibility,
         }
       : facultyFilters
   );
@@ -201,6 +203,16 @@ const FacultySection = ({
               </option>
             ))}
           </select>
+          <select
+            name="supervisionEligibility"
+            value={facultyFilters.supervisionEligibility}
+            onChange={handleFacultyFilterChange}
+            className="border rounded-lg px-3 py-2 focus:border-blue-500 focus:ring-blue-500"
+          >
+            <option value="">All Eligibility Status</option>
+            <option value="eligible">Eligible for Supervision</option>
+            <option value="not-eligible">Not Eligible for Supervision</option>
+          </select>
         </div>
       )}
 
@@ -211,25 +223,86 @@ const FacultySection = ({
           Error: {facultyError.message || "Failed to load faculty"}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 xl:gap-8">
-          {faculties.length === 0 ? (
-            <div className="col-span-full text-center py-12 text-gray-400">
-              <HiUser className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-              <p className="text-lg font-medium">No faculty found</p>
-              <p className="text-sm">Try adjusting your filters</p>
+        <>
+          {/* Summary Section */}
+          {faculties.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div className="bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-blue-600">
+                      Total Faculty
+                    </p>
+                    <p className="text-2xl font-bold text-blue-900">
+                      {faculties.length}
+                    </p>
+                  </div>
+                  <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
+                    <HiUser className="w-5 h-5 text-white" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-r from-green-50 to-green-100 border border-green-200 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-green-600">
+                      Eligible for Supervision
+                    </p>
+                    <p className="text-2xl font-bold text-green-900">
+                      {
+                        faculties.filter((f) => f.isEligibleForSupervision)
+                          .length
+                      }
+                    </p>
+                  </div>
+                  <div className="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center">
+                    <HiCheckCircle className="w-5 h-5 text-white" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-r from-amber-50 to-amber-100 border border-amber-200 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-amber-600">
+                      Not Eligible
+                    </p>
+                    <p className="text-2xl font-bold text-amber-900">
+                      {
+                        faculties.filter((f) => !f.isEligibleForSupervision)
+                          .length
+                      }
+                    </p>
+                  </div>
+                  <div className="w-10 h-10 bg-amber-500 rounded-lg flex items-center justify-center">
+                    <HiAcademicCap className="w-5 h-4 text-white" />
+                  </div>
+                </div>
+              </div>
             </div>
-          ) : (
-            faculties.map((faculty) => (
-              <FacultyCard
-                key={faculty._id}
-                faculty={faculty}
-                departments={departments}
-                onEdit={handleFacultyEdit}
-                onDelete={handleFacultyDelete}
-              />
-            ))
           )}
-        </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 xl:gap-8">
+            {faculties.length === 0 ? (
+              <div className="col-span-full text-center py-12 text-gray-400">
+                <HiUser className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                <p className="text-lg font-medium">No faculty found</p>
+                <p className="text-sm">Try adjusting your filters</p>
+              </div>
+            ) : (
+              faculties.map((faculty) => (
+                <FacultyCard
+                  key={faculty._id}
+                  faculty={faculty}
+                  departments={departments}
+                  onEdit={handleFacultyEdit}
+                  onDelete={handleFacultyDelete}
+                />
+              ))
+            )}
+          </div>
+        </>
       )}
 
       {/* Faculty Modal */}
