@@ -7,6 +7,8 @@ import {
   getUserById,
   createMainOfficeUser,
   resetMainOfficePassword,
+  createDRCChairUser,
+  resetDRCChairPassword,
 } from "../controllers/userController.js";
 import { protect, authorize } from "../middleware/authMiddleware.js";
 
@@ -35,5 +37,9 @@ router.delete("/:id", deleteUser);
 // Main Office User routes
 router.post("/main-office", createMainOfficeUser);
 router.post("/main-office/reset-password", resetMainOfficePassword);
+
+// DRC Chair User routes
+router.post("/drc-chair", createDRCChairUser);
+router.post("/drc-chair/reset-password", resetDRCChairPassword);
 
 export default router;

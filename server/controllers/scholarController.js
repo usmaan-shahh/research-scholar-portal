@@ -20,8 +20,8 @@ export const createScholar = async (req, res) => {
       dateOfJoining,
       areaOfResearch,
       synopsisTitle,
-      supervisor,
-      coSupervisor,
+      supervisor: originalSupervisor,
+      coSupervisor: originalCoSupervisor,
       departmentCode,
     } = req.body;
 
@@ -61,27 +61,42 @@ export const createScholar = async (req, res) => {
       return res.status(400).json({ message: "Invalid department code" });
     }
 
-    // Validate supervisor exists and belongs to the same department
-    const supervisorFaculty = await Faculty.findById(supervisor);
-    if (!supervisorFaculty) {
-      return res.status(400).json({ message: "Invalid supervisor" });
-    }
-    if (supervisorFaculty.departmentCode !== departmentCode) {
-      return res
-        .status(400)
-        .json({ message: "Supervisor must be from the same department" });
-    }
+    // For main_office staff, supervisor is optional
+    let finalSupervisor = originalSupervisor;
+    let finalCoSupervisor = originalCoSupervisor;
 
-    // Validate co-supervisor if provided
-    if (coSupervisor) {
-      const coSupervisorFaculty = await Faculty.findById(coSupervisor);
-      if (!coSupervisorFaculty) {
-        return res.status(400).json({ message: "Invalid co-supervisor" });
+    if (req.user?.role === "main_office") {
+      // Set supervisor and coSupervisor to null for main_office staff
+      finalSupervisor = null;
+      finalCoSupervisor = null;
+    } else {
+      // For other roles, supervisor is required
+      if (!finalSupervisor) {
+        return res.status(400).json({ message: "Supervisor is required" });
       }
-      if (coSupervisorFaculty.departmentCode !== departmentCode) {
+
+      // Validate supervisor exists and belongs to the same department
+      const supervisorFaculty = await Faculty.findById(finalSupervisor);
+      if (!supervisorFaculty) {
+        return res.status(400).json({ message: "Invalid supervisor" });
+      }
+      if (supervisorFaculty.departmentCode !== departmentCode) {
         return res
           .status(400)
-          .json({ message: "Co-supervisor must be from the same department" });
+          .json({ message: "Supervisor must be from the same department" });
+      }
+
+      // Validate co-supervisor if provided
+      if (finalCoSupervisor) {
+        const coSupervisorFaculty = await Faculty.findById(finalCoSupervisor);
+        if (!coSupervisorFaculty) {
+          return res.status(400).json({ message: "Invalid co-supervisor" });
+        }
+        if (coSupervisorFaculty.departmentCode !== departmentCode) {
+          return res.status(400).json({
+            message: "Co-supervisor must be from the same department",
+          });
+        }
       }
     }
 
@@ -100,9 +115,18 @@ export const createScholar = async (req, res) => {
       dateOfJoining,
       areaOfResearch,
       synopsisTitle,
-      supervisor,
-      coSupervisor,
+      supervisor: finalSupervisor,
+      coSupervisor: finalCoSupervisor,
       departmentCode,
+    });
+
+    console.log("Created scholar:", {
+      id: scholar._id,
+      name: scholar.name,
+      departmentCode: scholar.departmentCode,
+      isActive: scholar.isActive,
+      supervisor: scholar.supervisor,
+      coSupervisor: scholar.coSupervisor,
     });
 
     // Populate supervisor and co-supervisor details
@@ -124,21 +148,43 @@ export const getScholars = async (req, res) => {
     let filter = {};
 
     if (departmentCode) filter.departmentCode = departmentCode;
-    if (isActive !== undefined) filter.isActive = isActive === "true";
-    if (supervisor) filter.supervisor = supervisor;
+    if (isActive !== undefined && isActive !== "")
+      filter.isActive = isActive === "true";
+    if (supervisor && supervisor !== "") filter.supervisor = supervisor;
 
     // RBAC: main_office only sees own department
+    // But don't overwrite if they're explicitly querying for a different department
     if (req.user?.role === "main_office") {
-      filter.departmentCode = req.user.departmentCode;
+      // If no departmentCode is specified in query, use user's department
+      // If departmentCode is specified, validate it matches user's department
+      if (!departmentCode) {
+        filter.departmentCode = req.user.departmentCode;
+      } else if (departmentCode !== req.user.departmentCode) {
+        return res.status(403).json({
+          message:
+            "Forbidden: You can only access scholars from your department",
+        });
+      }
     }
+
+    console.log("Backend filter:", filter);
+    console.log("User role:", req.user?.role);
+    console.log("User department:", req.user?.departmentCode);
 
     const scholars = await Scholar.find(filter)
       .populate("supervisor", "name designation")
       .populate("coSupervisor", "name designation")
       .sort({ createdAt: -1 });
 
+    console.log("Found scholars count:", scholars.length);
+    console.log(
+      "Scholar departments:",
+      scholars.map((s) => ({ id: s._id, dept: s.departmentCode }))
+    );
+
     res.json(scholars);
   } catch (err) {
+    console.error("getScholars error:", err);
     res.status(500).json({ message: err.message });
   }
 };
@@ -186,8 +232,8 @@ export const updateScholar = async (req, res) => {
       dateOfJoining,
       areaOfResearch,
       synopsisTitle,
-      supervisor,
-      coSupervisor,
+      supervisor: originalSupervisor,
+      coSupervisor: originalCoSupervisor,
       departmentCode,
       isActive,
     } = req.body;
@@ -249,33 +295,47 @@ export const updateScholar = async (req, res) => {
     }
 
     // Validate supervisor if changed
-    if (supervisor && supervisor !== existingScholar.supervisor) {
-      const supervisorFaculty = await Faculty.findById(supervisor);
-      if (!supervisorFaculty) {
-        return res.status(400).json({ message: "Invalid supervisor" });
-      }
-      const effectiveDeptCode =
-        departmentCode || existingScholar.departmentCode;
-      if (supervisorFaculty.departmentCode !== effectiveDeptCode) {
-        return res
-          .status(400)
-          .json({ message: "Supervisor must be from the same department" });
+    let finalSupervisor = originalSupervisor;
+    if (finalSupervisor && finalSupervisor !== existingScholar.supervisor) {
+      // For main_office staff, supervisor is optional
+      if (req.user?.role === "main_office") {
+        // Set supervisor to null for main_office staff
+        finalSupervisor = null;
+      } else {
+        const supervisorFaculty = await Faculty.findById(finalSupervisor);
+        if (!supervisorFaculty) {
+          return res.status(400).json({ message: "Invalid supervisor" });
+        }
+        const effectiveDeptCode =
+          departmentCode || existingScholar.departmentCode;
+        if (supervisorFaculty.departmentCode !== effectiveDeptCode) {
+          return res
+            .status(400)
+            .json({ message: "Supervisor must be from the same department" });
+        }
       }
     }
 
     // Validate co-supervisor if changed
-    if (coSupervisor !== existingScholar.coSupervisor) {
-      if (coSupervisor) {
-        const coSupervisorFaculty = await Faculty.findById(coSupervisor);
-        if (!coSupervisorFaculty) {
-          return res.status(400).json({ message: "Invalid co-supervisor" });
-        }
-        const effectiveDeptCode =
-          departmentCode || existingScholar.departmentCode;
-        if (coSupervisorFaculty.departmentCode !== effectiveDeptCode) {
-          return res.status(400).json({
-            message: "Co-supervisor must be from the same department",
-          });
+    let finalCoSupervisor = originalCoSupervisor;
+    if (finalCoSupervisor !== existingScholar.coSupervisor) {
+      if (finalCoSupervisor) {
+        // For main_office staff, co-supervisor is optional
+        if (req.user?.role === "main_office") {
+          // Set co-supervisor to null for main_office staff
+          finalCoSupervisor = null;
+        } else {
+          const coSupervisorFaculty = await Faculty.findById(finalCoSupervisor);
+          if (!coSupervisorFaculty) {
+            return res.status(400).json({ message: "Invalid co-supervisor" });
+          }
+          const effectiveDeptCode =
+            departmentCode || existingScholar.departmentCode;
+          if (coSupervisorFaculty.departmentCode !== effectiveDeptCode) {
+            return res.status(400).json({
+              message: "Co-supervisor must be from the same department",
+            });
+          }
         }
       }
     }
@@ -297,8 +357,8 @@ export const updateScholar = async (req, res) => {
         dateOfJoining,
         areaOfResearch,
         synopsisTitle,
-        supervisor,
-        coSupervisor,
+        supervisor: finalSupervisor,
+        coSupervisor: finalCoSupervisor,
         departmentCode,
         isActive,
       },

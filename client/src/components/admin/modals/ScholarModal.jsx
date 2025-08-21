@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { HiPlus, HiCheck } from "react-icons/hi";
 
 const ScholarModal = ({
@@ -10,6 +10,7 @@ const ScholarModal = ({
   onSubmit,
   onChange,
   lockedDepartmentCode = "",
+  userRole = "",
 }) => {
   if (!showModal) return null;
 
@@ -17,6 +18,9 @@ const ScholarModal = ({
     ? faculties.find((f) => f.departmentCode === lockedDepartmentCode)
         ?.departmentCode || lockedDepartmentCode
     : "";
+
+  // Hide supervisor fields for main_office staff
+  const isMainOfficeStaff = userRole === "main_office";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
@@ -31,6 +35,11 @@ const ScholarModal = ({
           <h3 className="text-2xl font-extrabold text-gray-800 tracking-tight mb-1 drop-shadow">
             {editingScholar ? "Edit Scholar" : "Add Scholar"}
           </h3>
+          {isMainOfficeStaff && (
+            <p className="text-sm text-gray-600 text-center mt-2">
+              Note: Supervisor assignment will be handled by administrators
+            </p>
+          )}
           <button
             onClick={onClose}
             className="absolute top-4 right-4 text-gray-400 hover:text-blue-600 text-3xl font-bold focus:outline-none transition-transform hover:scale-125"
@@ -105,44 +114,6 @@ const ScholarModal = ({
 
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">
-                  Registration ID *
-                </label>
-                <input
-                  type="text"
-                  name="regId"
-                  required
-                  value={scholarForm.regId}
-                  onChange={onChange}
-                  className="block w-full rounded-xl border border-gray-300 bg-white/60 shadow-inner focus:border-blue-400 focus:ring-2 focus:ring-blue-200 sm:text-base px-4 py-2 transition"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">
-                  Department
-                </label>
-                {lockedDepartmentCode ? (
-                  <input
-                    type="text"
-                    readOnly
-                    value={`${departmentName} (${lockedDepartmentCode})`}
-                    className="block w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2"
-                  />
-                ) : (
-                  <input
-                    type="text"
-                    name="departmentCode"
-                    required
-                    value={scholarForm.departmentCode}
-                    onChange={onChange}
-                    placeholder="Enter department code"
-                    className="block w-full rounded-xl border border-gray-300 bg-white/60 shadow-inner focus:border-blue-400 focus:ring-2 focus:ring-blue-200 sm:text-base px-4 py-2 transition"
-                  />
-                )}
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="block text-sm font-semibold text-gray-700 mb-1">
                   Address *
                 </label>
                 <textarea
@@ -151,21 +122,35 @@ const ScholarModal = ({
                   rows="2"
                   value={scholarForm.address}
                   onChange={onChange}
+                  placeholder="Enter full address"
                   className="block w-full rounded-xl border border-gray-300 bg-white/60 shadow-inner focus:border-blue-400 focus:ring-2 focus:ring-blue-200 sm:text-base px-4 py-2 transition"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                  Department *
+                </label>
+                <input
+                  type="text"
+                  name="departmentCode"
+                  value={lockedDepartmentCode || scholarForm.departmentCode}
+                  disabled={!!lockedDepartmentCode}
+                  className="block w-full rounded-xl border border-gray-300 bg-gray-100 shadow-inner sm:text-base px-4 py-2"
                 />
               </div>
             </div>
           </div>
 
-          {/* Academic Background Section */}
+          {/* Academic Details Section */}
           <div className="mb-8">
             <h4 className="text-xl font-bold text-gray-800 mb-4 border-b border-gray-200 pb-2">
-              Academic Background
+              Academic Details
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">
-                  Postgraduate Degree *
+                  PG Degree *
                 </label>
                 <input
                   type="text"
@@ -173,7 +158,7 @@ const ScholarModal = ({
                   required
                   value={scholarForm.pgDegree}
                   onChange={onChange}
-                  placeholder="e.g., M.Tech, M.Sc"
+                  placeholder="e.g., MSc Computer Science"
                   className="block w-full rounded-xl border border-gray-300 bg-white/60 shadow-inner focus:border-blue-400 focus:ring-2 focus:ring-blue-200 sm:text-base px-4 py-2 transition"
                 />
               </div>
@@ -186,19 +171,19 @@ const ScholarModal = ({
                   type="number"
                   name="pgCgpa"
                   required
-                  min="0"
-                  max="10"
                   step="0.01"
+                  min="0"
+                  max="4"
                   value={scholarForm.pgCgpa}
                   onChange={onChange}
-                  placeholder="0.00 - 10.00"
+                  placeholder="e.g., 3.75"
                   className="block w-full rounded-xl border border-gray-300 bg-white/60 shadow-inner focus:border-blue-400 focus:ring-2 focus:ring-blue-200 sm:text-base px-4 py-2 transition"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">
-                  Bachelor's Degree *
+                  Background Degree *
                 </label>
                 <input
                   type="text"
@@ -206,25 +191,40 @@ const ScholarModal = ({
                   required
                   value={scholarForm.bgDegree}
                   onChange={onChange}
-                  placeholder="e.g., B.Tech, B.Sc"
+                  placeholder="e.g., BSc Computer Science"
                   className="block w-full rounded-xl border border-gray-300 bg-white/60 shadow-inner focus:border-blue-400 focus:ring-2 focus:ring-blue-200 sm:text-base px-4 py-2 transition"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">
-                  BG CGPA *
+                  Background CGPA *
                 </label>
                 <input
                   type="number"
                   name="bgCgpa"
                   required
-                  min="0"
-                  max="10"
                   step="0.01"
+                  min="0"
+                  max="4"
                   value={scholarForm.bgCgpa}
                   onChange={onChange}
-                  placeholder="0.00 - 10.00"
+                  placeholder="e.g., 3.50"
+                  className="block w-full rounded-xl border border-gray-300 bg-white/60 shadow-inner focus:border-blue-400 focus:ring-2 focus:ring-blue-200 sm:text-base px-4 py-2 transition"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                  Registration ID *
+                </label>
+                <input
+                  type="text"
+                  name="regId"
+                  required
+                  value={scholarForm.regId}
+                  onChange={onChange}
+                  placeholder="Enter registration ID"
                   className="block w-full rounded-xl border border-gray-300 bg-white/60 shadow-inner focus:border-blue-400 focus:ring-2 focus:ring-blue-200 sm:text-base px-4 py-2 transition"
                 />
               </div>
@@ -295,44 +295,49 @@ const ScholarModal = ({
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">
-                  Supervisor *
-                </label>
-                <select
-                  name="supervisor"
-                  required
-                  value={scholarForm.supervisor}
-                  onChange={onChange}
-                  className="block w-full rounded-xl border border-gray-300 bg-white/60 shadow-inner focus:border-blue-400 focus:ring-2 focus:ring-blue-200 sm:text-base px-4 py-2 transition"
-                >
-                  <option value="">Select Supervisor</option>
-                  {faculties.map((faculty) => (
-                    <option key={faculty._id} value={faculty._id}>
-                      {faculty.name} ({faculty.designation})
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {/* Only show supervisor fields for non-main_office staff */}
+              {!isMainOfficeStaff && (
+                <>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">
+                      Supervisor *
+                    </label>
+                    <select
+                      name="supervisor"
+                      required
+                      value={scholarForm.supervisor}
+                      onChange={onChange}
+                      className="block w-full rounded-xl border border-gray-300 bg-white/60 shadow-inner focus:border-blue-400 focus:ring-2 focus:ring-blue-200 sm:text-base px-4 py-2 transition"
+                    >
+                      <option value="">Select Supervisor</option>
+                      {faculties.map((faculty) => (
+                        <option key={faculty._id} value={faculty._id}>
+                          {faculty.name} ({faculty.designation})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">
-                  Co-Supervisor (Optional)
-                </label>
-                <select
-                  name="coSupervisor"
-                  value={scholarForm.coSupervisor}
-                  onChange={onChange}
-                  className="block w-full rounded-xl border border-gray-300 bg-white/60 shadow-inner focus:border-blue-400 focus:ring-2 focus:ring-blue-200 sm:text-base px-4 py-2 transition"
-                >
-                  <option value="">Select Co-Supervisor</option>
-                  {faculties.map((faculty) => (
-                    <option key={faculty._id} value={faculty._id}>
-                      {faculty.name} ({faculty.designation})
-                    </option>
-                  ))}
-                </select>
-              </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">
+                      Co-Supervisor (Optional)
+                    </label>
+                    <select
+                      name="coSupervisor"
+                      value={scholarForm.coSupervisor}
+                      onChange={onChange}
+                      className="block w-full rounded-xl border border-gray-300 bg-white/60 shadow-inner focus:border-blue-400 focus:ring-2 focus:ring-blue-200 sm:text-base px-4 py-2 transition"
+                    >
+                      <option value="">Select Co-Supervisor</option>
+                      {faculties.map((faculty) => (
+                        <option key={faculty._id} value={faculty._id}>
+                          {faculty.name} ({faculty.designation})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </>
+              )}
             </div>
           </div>
 

@@ -62,6 +62,23 @@ export const userApi = createApi({
       }),
       invalidatesTags: ["User"],
     }),
+    // DRC Chair User APIs
+    createDRCChairUser: builder.mutation({
+      query: ({ departmentCode, tempPassword }) => ({
+        url: "/users/drc-chair",
+        method: "POST",
+        body: { departmentCode, tempPassword },
+      }),
+      invalidatesTags: ["User"],
+    }),
+    resetDRCChairPassword: builder.mutation({
+      query: ({ departmentCode, tempPassword }) => ({
+        url: "/users/drc-chair/reset-password",
+        method: "POST",
+        body: { departmentCode, tempPassword },
+      }),
+      invalidatesTags: ["User"],
+    }),
     changePassword: builder.mutation({
       query: ({ currentPassword, newPassword }) => ({
         url: "/auth/change-password",
@@ -79,5 +96,7 @@ export const {
   useDeleteUserMutation,
   useCreateMainOfficeUserMutation,
   useResetMainOfficePasswordMutation,
+  useCreateDRCChairUserMutation,
+  useResetDRCChairPasswordMutation,
   useChangePasswordMutation,
 } = userApi;

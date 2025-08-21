@@ -82,7 +82,7 @@ const scholarSchema = new mongoose.Schema(
     supervisor: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Faculty",
-      required: true,
+      required: false,
     },
     coSupervisor: {
       type: mongoose.Schema.Types.ObjectId,

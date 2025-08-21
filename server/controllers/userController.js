@@ -172,11 +172,9 @@ export const createMainOfficeUser = async (req, res) => {
       departmentCode,
     });
     if (existing) {
-      return res
-        .status(409)
-        .json({
-          message: `Main Office User already exists for ${departmentCode}`,
-        });
+      return res.status(409).json({
+        message: `Main Office User already exists for ${departmentCode}`,
+      });
     }
 
     const password = tempPassword || generateTempPassword();
@@ -233,6 +231,88 @@ export const resetMainOfficePassword = async (req, res) => {
     });
   } catch (error) {
     console.error("resetMainOfficePassword error:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const createDRCChairUser = async (req, res) => {
+  try {
+    const { departmentCode, tempPassword } = req.body;
+    if (!departmentCode) {
+      return res.status(400).json({ message: "departmentCode is required" });
+    }
+
+    const department = await Department.findOne({ code: departmentCode });
+    if (!department) {
+      return res.status(400).json({ message: "Invalid department code" });
+    }
+
+    const username = `${departmentCode.toLowerCase()}_drc_chair`;
+
+    const existing = await User.findOne({
+      role: "drc_chair",
+      departmentCode,
+    });
+    if (existing) {
+      return res.status(409).json({
+        message: `DRC Chair already exists for ${departmentCode}`,
+      });
+    }
+
+    const password = tempPassword || generateTempPassword();
+
+    const user = await User.create({
+      name: `DRC Chair ${department.name}`,
+      email: `${username}@example.com`,
+      username,
+      password,
+      role: "drc_chair",
+      department: department.name,
+      departmentCode,
+      isActive: true,
+      mustChangePassword: true,
+    });
+
+    return res.status(201).json({
+      id: user._id,
+      username: user.username,
+      departmentCode: user.departmentCode,
+      role: user.role,
+      mustChangePassword: user.mustChangePassword,
+      tempPassword: tempPassword ? undefined : password,
+    });
+  } catch (error) {
+    console.error("createDRCChairUser error:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const resetDRCChairPassword = async (req, res) => {
+  try {
+    const { departmentCode, tempPassword } = req.body;
+    if (!departmentCode) {
+      return res.status(400).json({ message: "departmentCode is required" });
+    }
+
+    const user = await User.findOne({ role: "drc_chair", departmentCode });
+    if (!user) {
+      return res.status(404).json({ message: "DRC Chair User not found" });
+    }
+
+    const newPassword = tempPassword || generateTempPassword();
+    user.password = newPassword;
+    user.mustChangePassword = true;
+    await user.save();
+
+    return res.status(200).json({
+      id: user._id,
+      username: user.username,
+      departmentCode: user.departmentCode,
+      mustChangePassword: user.mustChangePassword,
+      tempPassword: tempPassword ? undefined : newPassword,
+    });
+  } catch (error) {
+    console.error("resetDRCChairPassword error:", error);
     return res.status(500).json({ message: "Server error" });
   }
 };

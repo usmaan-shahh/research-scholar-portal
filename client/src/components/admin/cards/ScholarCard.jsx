@@ -113,7 +113,11 @@ const ScholarCard = ({ scholar, faculties, onEdit, onDelete }) => {
           <div className="text-sm">
             <span className="text-gray-600">Supervisor:</span>
             <p className="font-medium text-gray-800 mt-1">
-              {getSupervisorName(scholar.supervisor._id || scholar.supervisor)}
+              {scholar.supervisor
+                ? getSupervisorName(
+                    scholar.supervisor._id || scholar.supervisor
+                  )
+                : "Not assigned"}
             </p>
           </div>
           {scholar.coSupervisor && (

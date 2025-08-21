@@ -28,6 +28,7 @@ const OfficeStaffDashboard = () => {
           title="Scholar Section"
           lockedDepartmentCode={departmentCode}
           hideFilters={true}
+          userRole={user?.role}
         />
       ),
     },
