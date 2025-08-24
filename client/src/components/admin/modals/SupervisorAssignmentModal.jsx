@@ -1,14 +1,22 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import { FaTimes, FaUserGraduate, FaUserTie } from "react-icons/fa";
+import {
+  FaTimes,
+  FaUserGraduate,
+  FaUserTie,
+  FaExclamationTriangle,
+  FaCheckCircle,
+  FaInfoCircle,
+} from "react-icons/fa";
 import { useUpdateScholarMutation } from "../../../apiSlices/scholarApi";
-import { useGetFacultiesQuery } from "../../../apiSlices/facultyApi";
+import { useGetFacultyWithSupervisionLoadQuery } from "../../../apiSlices/facultyApi";
 
 const SupervisorAssignmentModal = ({
   scholar,
   departmentCode,
   onClose,
   onSuccess,
+  refreshFaculties = null,
 }) => {
   const [formData, setFormData] = useState({
     supervisor: "",
@@ -16,8 +24,8 @@ const SupervisorAssignmentModal = ({
   });
   const [loading, setLoading] = useState(false);
 
-  // Get faculties in the department
-  const { data: faculties = [] } = useGetFacultiesQuery({
+  // Get faculties with supervision load information
+  const { data: faculties = [] } = useGetFacultyWithSupervisionLoadQuery({
     departmentCode: departmentCode,
   });
 
@@ -57,6 +65,12 @@ const SupervisorAssignmentModal = ({
       }).unwrap();
 
       toast.success("Supervisor assignment updated successfully!");
+
+      // Refresh faculty data to show updated supervision loads
+      if (refreshFaculties) {
+        refreshFaculties();
+      }
+
       onSuccess();
     } catch (error) {
       toast.error(
@@ -80,10 +94,101 @@ const SupervisorAssignmentModal = ({
       faculty._id !== scholar?.coSupervisor
   );
 
+  // Debug: Log faculty filtering results
+  useEffect(() => {
+    if (faculties.length > 0) {
+      const total = faculties.length;
+      const available = availableSupervisors.filter(
+        canAcceptMoreScholars
+      ).length;
+      const blocked = availableSupervisors.filter(
+        (f) => !canAcceptMoreScholars(f)
+      ).length;
+
+      console.log("Faculty filtering results:", {
+        total,
+        available,
+        blocked,
+        blockedDetails: availableSupervisors
+          .filter((f) => !canAcceptMoreScholars(f))
+          .map((f) => ({
+            name: f.name,
+            canAccept: f.supervisionLoad?.capacityStatus?.canAcceptMore,
+            isEligible: f.supervisionLoad?.isEligible,
+            reason: f.supervisionLoad?.eligibilityReason,
+          })),
+      });
+    }
+  }, [faculties, availableSupervisors]);
+
   const availableCoSupervisors = faculties.filter(
     (faculty) =>
       faculty._id !== formData.supervisor && faculty._id !== scholar?.supervisor
   );
+
+  // Function to render supervision load information
+  const renderSupervisionLoadInfo = (faculty) => {
+    if (!faculty.supervisionLoad) return null;
+
+    const { status, message, severity } =
+      faculty.supervisionLoad.capacityStatus;
+    const { currentLoad, maxCapacity, remainingCapacity } =
+      faculty.supervisionLoad;
+
+    let icon, color, bgColor;
+    switch (severity) {
+      case "error":
+        icon = <FaExclamationTriangle className="w-4 h-4" />;
+        color = "text-red-600";
+        bgColor = "bg-red-50 border-red-200";
+        break;
+      case "warning":
+        icon = <FaExclamationTriangle className="w-4 h-4" />;
+        color = "text-yellow-600";
+        bgColor = "bg-yellow-50 border-yellow-200";
+        break;
+      case "success":
+        icon = <FaCheckCircle className="w-4 h-4" />;
+        color = "text-green-600";
+        bgColor = "bg-green-50 border-green-200";
+        break;
+      default:
+        icon = <FaInfoCircle className="w-4 h-4" />;
+        color = "text-gray-600";
+        bgColor = "bg-gray-50 border-gray-200";
+    }
+
+    return (
+      <div className={`mt-1 p-2 rounded border ${bgColor}`}>
+        <div className="flex items-center gap-2 text-xs">
+          {icon}
+          <span className={`font-medium ${color}`}>
+            {currentLoad}/{maxCapacity} scholars
+          </span>
+          <span className="text-gray-500">({remainingCapacity} remaining)</span>
+        </div>
+        <p className="text-xs text-gray-600 mt-1">{message}</p>
+      </div>
+    );
+  };
+
+  // Function to check if faculty can accept more scholars
+  const canAcceptMoreScholars = (faculty) => {
+    const canAccept = faculty.supervisionLoad?.capacityStatus?.canAcceptMore;
+    const isEligible = faculty.supervisionLoad?.isEligible;
+
+    // Debug logging
+    if (!canAccept || !isEligible) {
+      console.log(`Faculty ${faculty.name} blocked:`, {
+        canAccept,
+        isEligible,
+        capacityStatus: faculty.supervisionLoad?.capacityStatus,
+        eligibilityReason: faculty.supervisionLoad?.eligibilityReason,
+      });
+    }
+
+    return canAccept && isEligible;
+  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -113,6 +218,97 @@ const SupervisorAssignmentModal = ({
             <FaTimes size={20} />
           </button>
         </div>
+
+        {/* Supervision Assignment Summary */}
+        {(formData.supervisor || formData.coSupervisor) && (
+          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <h4 className="font-medium text-blue-800 mb-3">
+              Assignment Summary
+            </h4>
+
+            {formData.supervisor &&
+              (() => {
+                const supervisor = faculties.find(
+                  (f) => f._id === formData.supervisor
+                );
+                if (!supervisor) return null;
+
+                const { capacityStatus, isEligible } =
+                  supervisor.supervisionLoad || {};
+                return (
+                  <div className="mb-3">
+                    <h5 className="font-medium text-gray-700">
+                      Supervisor: {supervisor.name}
+                    </h5>
+                    <div
+                      className={`inline-flex items-center gap-2 px-2 py-1 rounded text-xs ${
+                        capacityStatus?.severity === "error"
+                          ? "bg-red-100 text-red-700"
+                          : capacityStatus?.severity === "warning"
+                          ? "bg-yellow-100 text-yellow-700"
+                          : "bg-green-100 text-green-700"
+                      }`}
+                    >
+                      {capacityStatus?.severity === "error" ? (
+                        <FaExclamationTriangle />
+                      ) : capacityStatus?.severity === "warning" ? (
+                        <FaExclamationTriangle />
+                      ) : (
+                        <FaCheckCircle />
+                      )}
+                      {capacityStatus?.message}
+                    </div>
+                    {!isEligible && (
+                      <div className="mt-1 text-xs text-red-600">
+                        ⚠️ {supervisor.supervisionLoad?.eligibilityReason}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+
+            {formData.coSupervisor &&
+              (() => {
+                const coSupervisor = faculties.find(
+                  (f) => f._id === formData.coSupervisor
+                );
+                if (!coSupervisor) return null;
+
+                const { capacityStatus, isEligible } =
+                  coSupervisor.supervisionLoad || {};
+                return (
+                  <div>
+                    <h5 className="font-medium text-gray-700">
+                      Co-Supervisor: {coSupervisor.name}
+                    </h5>
+                    <div
+                      className={`inline-flex items-center gap-2 px-2 py-1 rounded text-xs ${
+                        capacityStatus?.severity === "error"
+                          ? "bg-red-100 text-red-700"
+                          : capacityStatus?.severity === "warning"
+                          ? "bg-yellow-100 text-yellow-700"
+                          : "bg-green-100 text-green-700"
+                      }`}
+                    >
+                      {capacityStatus?.severity === "error" ? (
+                        <FaExclamationTriangle />
+                      ) : capacityStatus?.severity === "warning" ? (
+                        <FaExclamationTriangle />
+                      ) : (
+                        <FaCheckCircle />
+                      )}
+                      {capacityStatus?.message}
+                    </div>
+                    {!isEligible && (
+                      <div className="mt-1 text-xs text-red-600">
+                        ⚠️ {coSupervisor.supervisionLoad?.eligibilityReason}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+          </div>
+        )}
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
@@ -146,50 +342,109 @@ const SupervisorAssignmentModal = ({
           )}
 
           {/* Supervisor Selection */}
-          <div>
+          <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Supervisor <span className="text-red-500">*</span>
             </label>
-            <select
-              name="supervisor"
-              value={formData.supervisor}
-              onChange={handleChange}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
-            >
-              <option value="">Select a supervisor</option>
-              {availableSupervisors.map((faculty) => (
-                <option key={faculty._id} value={faculty._id}>
-                  {faculty.name} - {faculty.designation}
-                </option>
-              ))}
-            </select>
-            <p className="text-sm text-gray-500 mt-1">
-              Select the primary supervisor for this scholar
-            </p>
+            <div className="relative">
+              <select
+                name="supervisor"
+                value={formData.supervisor}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                required
+              >
+                <option value="">Select a supervisor</option>
+                {availableSupervisors
+                  .filter((faculty) => canAcceptMoreScholars(faculty))
+                  .map((faculty) => (
+                    <option key={faculty._id} value={faculty._id}>
+                      {faculty.name} - {faculty.designation} (
+                      {faculty.supervisionLoad?.currentLoad || 0}/
+                      {faculty.supervisionLoad?.maxCapacity || 0})
+                    </option>
+                  ))}
+              </select>
+            </div>
+
+            {/* Show supervision load info for selected supervisor */}
+            {formData.supervisor && (
+              <div className="mt-2">
+                {(() => {
+                  const selectedFaculty = faculties.find(
+                    (f) => f._id === formData.supervisor
+                  );
+                  return selectedFaculty
+                    ? renderSupervisionLoadInfo(selectedFaculty)
+                    : null;
+                })()}
+              </div>
+            )}
+
+            {/* Show warning for faculties that cannot accept more scholars */}
+            {availableSupervisors
+              .filter((faculty) => !canAcceptMoreScholars(faculty))
+              .map((faculty) => {
+                const { capacityStatus, isEligible, eligibilityReason } =
+                  faculty.supervisionLoad || {};
+                let reason = "";
+
+                if (!isEligible) {
+                  reason = `Not eligible: ${eligibilityReason}`;
+                } else if (!capacityStatus?.canAcceptMore) {
+                  reason = capacityStatus?.message || "Capacity limit reached";
+                }
+
+                return (
+                  <div
+                    key={faculty._id}
+                    className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-xs text-red-700"
+                  >
+                    <strong>{faculty.name}</strong> cannot accept more scholars:{" "}
+                    {reason}
+                  </div>
+                );
+              })}
           </div>
 
           {/* Co-Supervisor Selection */}
-          <div>
+          <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Co-Supervisor <span className="text-gray-500">(Optional)</span>
             </label>
-            <select
-              name="coSupervisor"
-              value={formData.coSupervisor}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
-            >
-              <option value="">No co-supervisor</option>
-              {availableCoSupervisors.map((faculty) => (
-                <option key={faculty._id} value={faculty._id}>
-                  {faculty.name} - {faculty.designation}
-                </option>
-              ))}
-            </select>
-            <p className="text-sm text-gray-500 mt-1">
-              Optional secondary supervisor for additional guidance
-            </p>
+            <div className="relative">
+              <select
+                name="coSupervisor"
+                value={formData.coSupervisor}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">Select a co-supervisor (optional)</option>
+                {availableCoSupervisors
+                  .filter((faculty) => canAcceptMoreScholars(faculty))
+                  .map((faculty) => (
+                    <option key={faculty._id} value={faculty._id}>
+                      {faculty.name} - {faculty.designation} (
+                      {faculty.supervisionLoad?.currentLoad || 0}/
+                      {faculty.supervisionLoad?.maxCapacity || 0})
+                    </option>
+                  ))}
+              </select>
+            </div>
+
+            {/* Show supervision load info for selected co-supervisor */}
+            {formData.coSupervisor && (
+              <div className="mt-2">
+                {(() => {
+                  const selectedFaculty = faculties.find(
+                    (f) => f._id === formData.coSupervisor
+                  );
+                  return selectedFaculty
+                    ? renderSupervisionLoadInfo(selectedFaculty)
+                    : null;
+                })()}
+              </div>
+            )}
           </div>
 
           {/* Scholar Information */}

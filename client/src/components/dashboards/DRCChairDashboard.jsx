@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { useSelector } from "react-redux";
 import {
   FaUniversity,
@@ -10,17 +10,16 @@ import { toast } from "react-toastify";
 import { useGetScholarsQuery } from "../../apiSlices/scholarApi";
 import ScholarsSection from "../admin/sections/ScholarsSection";
 import SupervisorAssignmentModal from "../admin/modals/SupervisorAssignmentModal";
-import SupervisorAssignmentsSection from "../admin/sections/SupervisorAssignmentsSection";
 
 const TABS = {
-  SCHOLARS: "Scholars",
-  SUPERVISOR_ASSIGNMENTS: "Supervisor Assignments",
+  SCHOLARS_AND_ASSIGNMENTS: "Scholars & Assignments",
 };
 
 const DRCChairDashboard = () => {
-  const [activeTab, setActiveTab] = useState(TABS.SCHOLARS);
+  const [activeTab, setActiveTab] = useState(TABS.SCHOLARS_AND_ASSIGNMENTS);
   const [showSupervisorModal, setShowSupervisorModal] = useState(false);
   const [selectedScholar, setSelectedScholar] = useState(null);
+  const refreshFacultiesRef = useRef(null);
 
   const { user } = useSelector((state) => state.auth);
 
@@ -59,6 +58,7 @@ const DRCChairDashboard = () => {
     data: scholars = [],
     isLoading: scholarsLoading,
     error: scholarsError,
+    refetch: refetchScholars,
   } = useGetScholarsQuery(departmentCode ? queryParams : undefined);
 
   // Debug API call details
@@ -89,6 +89,14 @@ const DRCChairDashboard = () => {
     setShowSupervisorModal(false);
     setSelectedScholar(null);
     toast.success("Supervisor assignment updated successfully!");
+  };
+
+  const handleRefreshFaculties = () => {
+    // Refresh both scholars and faculty data
+    refetchScholars();
+    if (refreshFacultiesRef.current) {
+      refreshFacultiesRef.current();
+    }
   };
 
   return (
@@ -191,20 +199,16 @@ const DRCChairDashboard = () => {
 
       {/* Tab Content */}
       <div className="max-w-7xl mx-auto">
-        {activeTab === TABS.SCHOLARS && departmentCode && (
+        {activeTab === TABS.SCHOLARS_AND_ASSIGNMENTS && departmentCode && (
           <ScholarsSection
             lockedDepartmentCode={departmentCode}
             hideFilters={false}
-            title={`${departmentCode} Department Scholars`}
+            title={`${departmentCode} Department Scholars & Assignments`}
             userRole="drc_chair"
             onSupervisorAssignment={handleSupervisorAssignment}
-          />
-        )}
-
-        {activeTab === TABS.SUPERVISOR_ASSIGNMENTS && departmentCode && (
-          <SupervisorAssignmentsSection
-            departmentCode={departmentCode}
-            onSupervisorAssignment={handleSupervisorAssignment}
+            showSupervisorAssignments={true}
+            onRefreshFaculties={handleRefreshFaculties}
+            refreshFacultiesRef={refreshFacultiesRef}
           />
         )}
 
@@ -282,6 +286,7 @@ const DRCChairDashboard = () => {
           departmentCode={departmentCode}
           onClose={() => setShowSupervisorModal(false)}
           onSuccess={handleSupervisorUpdate}
+          refreshFaculties={handleRefreshFaculties}
         />
       )}
     </div>

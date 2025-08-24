@@ -15,7 +15,11 @@ const router = express.Router();
 router.use(protect);
 
 // Scholar routes
-router.post("/", authorize(["admin", "main_office"]), createScholar);
+router.post(
+  "/",
+  authorize(["admin", "main_office", "drc_chair"]),
+  createScholar
+);
 
 router.get(
   "/",
@@ -31,10 +35,18 @@ router.get(
 
 router.get(
   "/:id",
-  authorize(["admin", "main_office", "supervisor", "scholar"]),
+  authorize(["admin", "main_office", "supervisor", "scholar", "drc_chair"]),
   getScholarById
 );
-router.put("/:id", authorize(["admin", "main_office"]), updateScholar);
-router.delete("/:id", authorize(["admin", "main_office"]), deleteScholar);
+router.put(
+  "/:id",
+  authorize(["admin", "main_office", "drc_chair"]),
+  updateScholar
+);
+router.delete(
+  "/:id",
+  authorize(["admin", "main_office", "drc_chair"]),
+  deleteScholar
+);
 
 export default router;

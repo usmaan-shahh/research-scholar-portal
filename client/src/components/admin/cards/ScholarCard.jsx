@@ -8,6 +8,7 @@ const ScholarCard = ({
   onDelete,
   onSupervisorAssignment = null,
   userRole = "",
+  showSupervisorAssignments = false,
 }) => {
   const [showProfile, setShowProfile] = useState(false);
 
@@ -42,16 +43,31 @@ const ScholarCard = ({
               <p className="text-blue-100 text-sm">{scholar.rollNo}</p>
             </div>
           </div>
-          <div className="text-right">
+          <div className="flex flex-col items-end space-y-2">
             <span
-              className={`px-2 py-1 rounded-full text-xs font-semibold ${
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm ${
                 scholar.isActive
-                  ? "bg-green-100 text-green-800"
-                  : "bg-red-100 text-red-800"
+                  ? "bg-green-100 text-green-800 border border-green-200"
+                  : "bg-red-100 text-red-800 border border-red-200"
               }`}
             >
               {scholar.isActive ? "Active" : "Inactive"}
             </span>
+
+            {/* Supervisor Assignment Status */}
+            {showSupervisorAssignments && (
+              <span
+                className={`px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm ${
+                  scholar.supervisor
+                    ? "bg-green-100 text-green-800 border border-green-200"
+                    : "bg-yellow-100 text-yellow-800 border border-yellow-200"
+                }`}
+              >
+                {scholar.supervisor
+                  ? "Supervisor Assigned"
+                  : "Pending Assignment"}
+              </span>
+            )}
           </div>
         </div>
       </div>
@@ -116,17 +132,76 @@ const ScholarCard = ({
         </div>
 
         {/* Supervisor Info */}
-        <div className="space-y-2">
+        <div
+          className={`space-y-2 ${
+            showSupervisorAssignments
+              ? "bg-blue-50 p-3 rounded-lg border border-blue-200"
+              : ""
+          }`}
+        >
           <div className="text-sm">
             <span className="text-gray-600">Supervisor:</span>
-            <p className="font-medium text-gray-800 mt-1">
+            <p
+              className={`font-medium mt-1 ${
+                scholar.supervisor ? "text-green-700" : "text-yellow-700"
+              }`}
+            >
               {scholar.supervisor
                 ? getSupervisorName(
                     scholar.supervisor._id || scholar.supervisor
                   )
                 : "Not assigned"}
             </p>
+
+            {/* Show supervision load info for assigned supervisor */}
+            {showSupervisorAssignments &&
+              scholar.supervisor &&
+              (() => {
+                const supervisor = faculties.find(
+                  (f) =>
+                    f._id === (scholar.supervisor._id || scholar.supervisor)
+                );
+                if (!supervisor?.supervisionLoad) return null;
+
+                const { capacityStatus, currentLoad, maxCapacity } =
+                  supervisor.supervisionLoad;
+                let statusColor, statusBg;
+
+                switch (capacityStatus?.severity) {
+                  case "error":
+                    statusColor = "text-red-600";
+                    statusBg = "bg-red-100";
+                    break;
+                  case "warning":
+                    statusColor = "text-yellow-600";
+                    statusBg = "bg-yellow-100";
+                    break;
+                  default:
+                    statusColor = "text-green-600";
+                    statusBg = "bg-green-100";
+                }
+
+                return (
+                  <div className={`mt-2 p-2 rounded text-xs ${statusBg}`}>
+                    <div className="flex items-center justify-between">
+                      <span className={statusColor}>
+                        Load: {currentLoad}/{maxCapacity}
+                      </span>
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs ${statusColor} ${statusBg} border`}
+                      >
+                        {capacityStatus?.status === "full"
+                          ? "Full"
+                          : capacityStatus?.status === "near_limit"
+                          ? "Near Limit"
+                          : "Available"}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })()}
           </div>
+
           {scholar.coSupervisor && (
             <div className="text-sm">
               <span className="text-gray-600">Co-Supervisor:</span>
@@ -135,6 +210,22 @@ const ScholarCard = ({
                   scholar.coSupervisor._id || scholar.coSupervisor
                 )}
               </p>
+            </div>
+          )}
+
+          {/* Quick Assignment Button */}
+          {showSupervisorAssignments && onSupervisorAssignment && (
+            <div className="pt-2">
+              <button
+                onClick={() => onSupervisorAssignment(scholar)}
+                className={`w-full px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  scholar.supervisor
+                    ? "bg-blue-600 text-white hover:bg-blue-700"
+                    : "bg-yellow-600 text-white hover:bg-yellow-700"
+                }`}
+              >
+                {scholar.supervisor ? "Change Supervisor" : "Assign Supervisor"}
+              </button>
             </div>
           )}
         </div>
@@ -205,10 +296,22 @@ const ScholarCard = ({
             </button>
             <button
               onClick={() => onDelete(scholar._id, false)}
-              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+              className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
               title="Deactivate Scholar"
             >
-              <HiTrash className="w-4 h-4" />
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                />
+              </svg>
             </button>
           </div>
         </div>

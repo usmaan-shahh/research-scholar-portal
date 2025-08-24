@@ -9,40 +9,40 @@ export const facultyApi = createApi({
   tagTypes: ["Faculty"],
   endpoints: (builder) => ({
     getFaculties: builder.query({
-      query: (params) => {
-        let queryStr = "/";
-        if (params) {
-          const q = new URLSearchParams(params).toString();
-          if (q) queryStr += `?${q}`;
-        }
-        return queryStr;
-      },
-      providesTags: (result = [], error, arg) => [
-        "Faculty",
-        ...result.map(({ _id }) => ({ type: "Faculty", id: _id })),
-      ],
+      query: (params) => ({
+        url: "/",
+        params,
+      }),
+      providesTags: ["Faculty"],
     }),
     getFacultyById: builder.query({
       query: (id) => `/${id}`,
       providesTags: (result, error, id) => [{ type: "Faculty", id }],
     }),
+    getFacultyWithSupervisionLoad: builder.query({
+      query: (params) => ({
+        url: "/supervision-load",
+        params,
+      }),
+      providesTags: ["Faculty"],
+    }),
     createFaculty: builder.mutation({
-      query: (body) => ({
+      query: (faculty) => ({
         url: "/",
         method: "POST",
-        body,
+        body: faculty,
       }),
       invalidatesTags: ["Faculty"],
     }),
     updateFaculty: builder.mutation({
-      query: ({ id, ...patch }) => ({
+      query: ({ id, ...faculty }) => ({
         url: `/${id}`,
         method: "PUT",
-        body: patch,
+        body: faculty,
       }),
       invalidatesTags: (result, error, { id }) => [
-        "Faculty",
         { type: "Faculty", id },
+        "Faculty",
       ],
     }),
     deleteFaculty: builder.mutation({
@@ -50,10 +50,7 @@ export const facultyApi = createApi({
         url: `/${id}`,
         method: "DELETE",
       }),
-      invalidatesTags: (result, error, id) => [
-        "Faculty",
-        { type: "Faculty", id },
-      ],
+      invalidatesTags: ["Faculty"],
     }),
   }),
 });
@@ -61,6 +58,7 @@ export const facultyApi = createApi({
 export const {
   useGetFacultiesQuery,
   useGetFacultyByIdQuery,
+  useGetFacultyWithSupervisionLoadQuery,
   useCreateFacultyMutation,
   useUpdateFacultyMutation,
   useDeleteFacultyMutation,

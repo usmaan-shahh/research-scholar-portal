@@ -6,7 +6,7 @@ import {
   useUpdateScholarMutation,
   useDeleteScholarMutation,
 } from "../../../apiSlices/scholarApi";
-import { useGetFacultiesQuery } from "../../../apiSlices/facultyApi";
+import { useGetFacultyWithSupervisionLoadQuery } from "../../../apiSlices/facultyApi";
 import ScholarCard from "../cards/ScholarCard";
 import ScholarModal from "../modals/ScholarModal";
 import { HiAcademicCap } from "react-icons/hi";
@@ -18,6 +18,10 @@ const ScholarsSection = React.memo(
     title = "Scholar Section",
     userRole = "",
     onSupervisorAssignment = null,
+    showSupervisorAssignments = false,
+    refreshFaculties = null,
+    onRefreshFaculties = null,
+    refreshFacultiesRef = null,
   }) => {
     const [showScholarModal, setShowScholarModal] = useState(false);
     const [editingScholar, setEditingScholar] = useState(null);
@@ -56,6 +60,7 @@ const ScholarsSection = React.memo(
       departmentCode: lockedDepartmentCode || "",
       isActive: "", // Empty string means "all scholars" (both active and inactive)
       supervisor: "",
+      supervisorAssignment: "", // New filter for assignment status
     });
 
     // Memoize query parameters to prevent infinite requests
@@ -84,6 +89,28 @@ const ScholarsSection = React.memo(
       error: scholarError,
     } = useGetScholarsQuery(queryParams);
 
+    // Apply additional filtering for supervisor assignment status
+    const filteredScholars = useMemo(() => {
+      let filtered = scholars;
+
+      if (scholarFilters.supervisorAssignment === "assigned") {
+        filtered = filtered.filter((s) => s.supervisor);
+      } else if (scholarFilters.supervisorAssignment === "unassigned") {
+        filtered = filtered.filter((s) => !s.supervisor);
+      }
+
+      if (scholarFilters.search) {
+        const searchTerm = scholarFilters.search.toLowerCase();
+        filtered = filtered.filter(
+          (s) =>
+            s.name?.toLowerCase().includes(searchTerm) ||
+            s.rollNo?.toLowerCase().includes(searchTerm)
+        );
+      }
+
+      return filtered;
+    }, [scholars, scholarFilters.supervisorAssignment, scholarFilters.search]);
+
     // Memoize faculties query parameters
     const facultiesQueryParams = useMemo(() => {
       return lockedDepartmentCode
@@ -91,7 +118,18 @@ const ScholarsSection = React.memo(
         : {};
     }, [lockedDepartmentCode]);
 
-    const { data: faculties = [] } = useGetFacultiesQuery(facultiesQueryParams);
+    const { data: faculties = [], refetch: refetchFaculties } =
+      useGetFacultyWithSupervisionLoadQuery(facultiesQueryParams);
+
+    // Set up the refresh function ref
+    useEffect(() => {
+      if (refreshFacultiesRef) {
+        refreshFacultiesRef.current = () => {
+          // Refetch faculty data
+          refetchFaculties();
+        };
+      }
+    }, [refreshFacultiesRef, refetchFaculties]);
 
     const [createScholar] = useCreateScholarMutation();
     const [updateScholar] = useUpdateScholarMutation();
@@ -314,6 +352,25 @@ const ScholarsSection = React.memo(
               <option value="true">Active</option>
               <option value="false">Inactive</option>
             </select>
+
+            {/* Supervisor Assignment Status Filter */}
+            {showSupervisorAssignments && (
+              <select
+                value={scholarFilters.supervisorAssignment || ""}
+                onChange={(e) =>
+                  setScholarFilters((prev) => ({
+                    ...prev,
+                    supervisorAssignment: e.target.value,
+                  }))
+                }
+                className="px-4 py-2 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition shadow-sm bg-white/70"
+              >
+                <option value="">All Assignment Status</option>
+                <option value="assigned">Supervisor Assigned</option>
+                <option value="unassigned">Pending Assignment</option>
+              </select>
+            )}
+
             {userRole !== "main_office" && (
               <select
                 name="supervisor"
@@ -337,6 +394,73 @@ const ScholarsSection = React.memo(
           </div>
         )}
 
+        {/* Supervisor Assignments Summary */}
+        {showSupervisorAssignments && (
+          <div className="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-blue-800">
+                Supervisor Assignment Overview
+              </h3>
+              <div className="flex gap-2">
+                <span className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
+                  Total: {filteredScholars.length}
+                </span>
+                <span className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full">
+                  Assigned:{" "}
+                  {filteredScholars.filter((s) => s.supervisor).length}
+                </span>
+                <span className="px-3 py-1 bg-yellow-100 text-yellow-800 text-sm rounded-full">
+                  Pending:{" "}
+                  {filteredScholars.filter((s) => !s.supervisor).length}
+                </span>
+              </div>
+            </div>
+
+            {/* Pending Assignments */}
+            {filteredScholars.filter((s) => !s.supervisor).length > 0 && (
+              <div className="bg-white rounded-lg p-4 border border-blue-200">
+                <h4 className="font-medium text-blue-800 mb-3">
+                  Scholars Pending Supervisor Assignment
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {filteredScholars
+                    .filter((s) => !s.supervisor)
+                    .slice(0, 6)
+                    .map((scholar) => (
+                      <div
+                        key={scholar._id}
+                        className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg border border-yellow-200"
+                      >
+                        <div>
+                          <p className="font-medium text-gray-800">
+                            {scholar.name}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            {scholar.rollNo}
+                          </p>
+                        </div>
+                        {onSupervisorAssignment && (
+                          <button
+                            onClick={() => onSupervisorAssignment(scholar)}
+                            className="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors"
+                          >
+                            Assign
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                </div>
+                {filteredScholars.filter((s) => !s.supervisor).length > 6 && (
+                  <p className="text-sm text-gray-600 mt-3 text-center">
+                    +{filteredScholars.filter((s) => !s.supervisor).length - 6}{" "}
+                    more pending assignments
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
         {scholarLoading ? (
           <div className="text-gray-500">Loading scholars...</div>
         ) : scholarError ? (
@@ -345,14 +469,38 @@ const ScholarsSection = React.memo(
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 xl:gap-8">
-            {scholars.length === 0 ? (
+            {filteredScholars.length === 0 ? (
               <div className="col-span-full text-center py-12 text-gray-400">
                 <HiAcademicCap className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                <p className="text-lg font-medium">No scholars found</p>
-                <p className="text-sm">Try adjusting your search criteria</p>
+                <p className="text-lg font-medium">
+                  {scholars.length === 0
+                    ? "No scholars found"
+                    : "No scholars match your current filters"}
+                </p>
+                <p className="text-sm">
+                  {scholars.length === 0
+                    ? "Try adjusting your search criteria"
+                    : "Try adjusting your filters or search terms"}
+                </p>
+                {scholars.length > 0 && (
+                  <button
+                    onClick={() =>
+                      setScholarFilters({
+                        departmentCode: lockedDepartmentCode || "",
+                        isActive: "",
+                        supervisor: "",
+                        supervisorAssignment: "",
+                        search: "",
+                      })
+                    }
+                    className="mt-3 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    Clear All Filters
+                  </button>
+                )}
               </div>
             ) : (
-              scholars.map((scholar) => (
+              filteredScholars.map((scholar) => (
                 <ScholarCard
                   key={scholar._id}
                   scholar={scholar}
@@ -361,6 +509,7 @@ const ScholarsSection = React.memo(
                   onDelete={handleScholarDelete}
                   onSupervisorAssignment={onSupervisorAssignment}
                   userRole={userRole}
+                  showSupervisorAssignments={showSupervisorAssignments}
                 />
               ))
             )}
