@@ -26,6 +26,13 @@ router.get(
   }
 );
 
+// Create faculty account (for existing faculty members)
+router.post(
+  "/create-account",
+  authorize(["admin", "main_office"]),
+  facultyController.createFacultyAccount
+);
+
 // Existing routes (keep them as is for now)
 router.post("/", facultyController.createFaculty);
 router.get("/", facultyController.getFaculties);

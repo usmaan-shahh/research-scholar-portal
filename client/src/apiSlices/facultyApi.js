@@ -34,6 +34,14 @@ export const facultyApi = createApi({
       }),
       invalidatesTags: ["Faculty"],
     }),
+    createFacultyAccount: builder.mutation({
+      query: (accountData) => ({
+        url: "/create-account",
+        method: "POST",
+        body: accountData,
+      }),
+      invalidatesTags: ["Faculty"],
+    }),
     updateFaculty: builder.mutation({
       query: ({ id, ...faculty }) => ({
         url: `/${id}`,
@@ -60,6 +68,7 @@ export const {
   useGetFacultyByIdQuery,
   useGetFacultyWithSupervisionLoadQuery,
   useCreateFacultyMutation,
+  useCreateFacultyAccountMutation,
   useUpdateFacultyMutation,
   useDeleteFacultyMutation,
 } = facultyApi;

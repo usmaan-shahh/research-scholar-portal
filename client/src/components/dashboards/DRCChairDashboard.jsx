@@ -66,12 +66,8 @@ const DRCChairDashboard = () => {
   } = useGetScholarsQuery(departmentCode ? queryParams : undefined);
 
   // Get meetings statistics
-  const {
-    data: meetingsStats = {},
-    isLoading: meetingsStatsLoading,
-  } = useGetMeetingStatsQuery(
-    departmentCode ? { departmentCode } : undefined
-  );
+  const { data: meetingsStats = {}, isLoading: meetingsStatsLoading } =
+    useGetMeetingStatsQuery(departmentCode ? { departmentCode } : undefined);
 
   // Debug API call details
   useEffect(() => {

@@ -39,6 +39,24 @@ const facultySchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    // User account fields
+    username: {
+      type: String,
+      required: false,
+      unique: true,
+      sparse: true,
+      trim: true,
+      lowercase: true,
+    },
+    hasUserAccount: {
+      type: Boolean,
+      default: false,
+    },
+    userAccountId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: false,
+    },
   },
   {
     timestamps: true,

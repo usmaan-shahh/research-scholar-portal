@@ -8,6 +8,7 @@ import PrivateRoute from "./routes/PrivateRoute";
 import AdminDashboard from "./components/admin/AdminDashboard";
 import OfficeStaffDashboard from "./components/dashboards/OfficeStaffDashboard";
 import DRCChairDashboard from "./components/dashboards/DRCChairDashboard";
+import FacultyDashboard from "./components/dashboards/FacultyDashboard";
 import Login from "./components/auth/Login";
 import ChangePassword from "./components/auth/ChangePassword";
 
@@ -25,7 +26,12 @@ function App() {
             path="/change-password"
             element={
               <PrivateRoute
-                allowedRoles={["admin", "main_office", "office_staff"]}
+                allowedRoles={[
+                  "admin",
+                  "main_office",
+                  "office_staff",
+                  "supervisor",
+                ]}
               >
                 <ChangePassword />
               </PrivateRoute>
@@ -47,6 +53,16 @@ function App() {
             element={
               <PrivateRoute allowedRoles={["office_staff", "main_office"]}>
                 <OfficeStaffDashboard />
+              </PrivateRoute>
+            }
+          />
+
+          {/* Faculty Dashboard Route */}
+          <Route
+            path="/supervisor/*"
+            element={
+              <PrivateRoute allowedRoles={["supervisor"]}>
+                <FacultyDashboard />
               </PrivateRoute>
             }
           />

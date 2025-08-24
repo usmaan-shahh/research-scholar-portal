@@ -9,10 +9,12 @@ import {
   HiStatusOffline,
   HiShieldCheck,
   HiShieldExclamation,
+  HiKey,
+  HiUserAdd,
 } from "react-icons/hi";
 import { FiEdit2, FiTrash2 } from "react-icons/fi";
 
-const FacultyCard = ({ faculty, departments, onEdit, onDelete }) => {
+const FacultyCard = ({ faculty, departments, onEdit, onDelete, onCreateAccount }) => {
   // Determine supervision eligibility
   const isEligible = faculty.isEligibleForSupervision;
   
@@ -76,6 +78,39 @@ const FacultyCard = ({ faculty, departments, onEdit, onDelete }) => {
               <p className="text-sm text-gray-600 break-words">
                 {faculty.designation}
               </p>
+            </div>
+          </div>
+
+          {/* User Account Status */}
+          <div className="flex items-start">
+            <div className="flex-shrink-0 w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center mr-3">
+              <HiKey className="w-4 h-4 text-gray-500" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-900 mb-1">
+                User Account
+              </p>
+              <div className="flex items-center justify-between">
+                <span
+                  className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
+                    faculty.hasUserAccount
+                      ? "bg-green-100 text-green-800 border border-green-200"
+                      : "bg-orange-100 text-orange-800 border border-orange-200"
+                  }`}
+                >
+                  {faculty.hasUserAccount ? "Active" : "No Account"}
+                </span>
+                {faculty.hasUserAccount && faculty.username && (
+                  <span className="text-xs text-gray-500">
+                    @{faculty.username}
+                  </span>
+                )}
+              </div>
+              {!faculty.hasUserAccount && (
+                <p className="text-xs text-gray-500 mt-1">
+                  No login account created yet
+                </p>
+              )}
             </div>
           </div>
 
@@ -166,6 +201,16 @@ const FacultyCard = ({ faculty, departments, onEdit, onDelete }) => {
           )}
         </div>
         <div className="flex items-center space-x-2">
+          {/* Create Account Button - Only show if no account exists */}
+          {!faculty.hasUserAccount && onCreateAccount && (
+            <button
+              onClick={() => onCreateAccount(faculty)}
+              className="p-2 text-orange-600 hover:text-orange-700 hover:bg-orange-50 rounded-lg transition-all duration-200 border border-transparent hover:border-orange-200"
+              title="Create User Account"
+            >
+              <HiUserAdd className="w-4 h-4" />
+            </button>
+          )}
           <button
             onClick={() => onEdit(faculty)}
             className="p-2 text-gray-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all duration-200 border border-transparent hover:border-emerald-200"

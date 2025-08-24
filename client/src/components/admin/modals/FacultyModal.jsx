@@ -1,5 +1,5 @@
 import React from "react";
-import { HiPlus, HiCheck } from "react-icons/hi";
+import { HiPlus, HiCheck, HiUser, HiMail, HiKey } from "react-icons/hi";
 
 const FacultyModal = ({
   showModal,
@@ -114,46 +114,39 @@ const FacultyModal = ({
               <option value="">Select Designation</option>
               {designations.map((d) => (
                 <option key={d.value} value={d.value}>
-                  {d.label}
+                  {d.label} (Max: {d.max} scholars)
                 </option>
               ))}
             </select>
           </div>
 
-          <div className="flex items-center">
-            <input
-              type="checkbox"
-              name="isPhD"
-              checked={facultyForm.isPhD}
-              onChange={onChange}
-              className="mr-2 focus:ring-blue-500"
-              id="isPhD"
-            />
-            <label
-              htmlFor="isPhD"
-              className="block text-sm font-medium text-gray-700"
-            >
-              isPhD
-            </label>
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                name="isPhD"
+                checked={facultyForm.isPhD}
+                onChange={onChange}
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              />
+              <label className="ml-2 block text-sm font-semibold text-gray-700">
+                Has PhD
+              </label>
+            </div>
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                name="isActive"
+                checked={facultyForm.isActive}
+                onChange={onChange}
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              />
+              <label className="ml-2 block text-sm font-semibold text-gray-700">
+                Active
+              </label>
+            </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
-              Max Scholars
-            </label>
-            <input
-              type="number"
-              name="maxScholars"
-              value={
-                designations.find((d) => d.value === facultyForm.designation)
-                  ?.max || ""
-              }
-              disabled
-              className="block w-full rounded-xl border border-gray-300 bg-white/60 shadow-inner sm:text-base px-4 py-2"
-            />
-          </div>
-
-          {/* Number of Publications */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">
               Number of Publications
@@ -162,44 +155,106 @@ const FacultyModal = ({
               type="number"
               name="numberOfPublications"
               min="0"
-              value={facultyForm.numberOfPublications || 0}
+              value={facultyForm.numberOfPublications}
               onChange={onChange}
               className="block w-full rounded-xl border border-gray-300 bg-white/60 shadow-inner focus:border-blue-400 focus:ring-2 focus:ring-blue-200 sm:text-base px-4 py-2 transition"
             />
           </div>
 
-          {/* isActive Toggle */}
-          <div className="flex items-center">
-            <input
-              type="checkbox"
-              name="isActive"
-              checked={facultyForm.isActive || false}
-              onChange={onChange}
-              className="mr-2 focus:ring-blue-500"
-              id="isActive"
-            />
-            <label
-              htmlFor="isActive"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Active Faculty
-            </label>
-          </div>
+          {/* Account Creation Section - Only show when creating new faculty */}
+          {!editingFaculty && (
+            <>
+              <div className="border-t border-gray-200 pt-4">
+                <div className="flex items-center mb-3">
+                  <HiUser className="w-5 h-5 text-blue-600 mr-2" />
+                  <h4 className="text-lg font-semibold text-gray-800">
+                    Create User Account
+                  </h4>
+                </div>
 
-          <div className="flex justify-end space-x-4 mt-8">
+                <div className="flex items-center mb-4">
+                  <input
+                    type="checkbox"
+                    name="createUserAccount"
+                    checked={facultyForm.createUserAccount}
+                    onChange={onChange}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <label className="block text-sm font-semibold text-gray-700">
+                    Create login account for this faculty member
+                  </label>
+                </div>
+
+                {facultyForm.createUserAccount && (
+                  <div className="space-y-3 pl-4 border-l-2 border-blue-200">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">
+                        <HiUser className="w-4 h-4 inline mr-1 text-blue-600" />
+                        Username
+                      </label>
+                      <input
+                        type="text"
+                        name="username"
+                        required={facultyForm.createUserAccount}
+                        value={
+                          facultyForm.username || facultyForm.employeeCode || ""
+                        }
+                        onChange={onChange}
+                        className="block w-full rounded-xl border border-gray-300 bg-white/60 shadow-inner focus:border-blue-400 focus:ring-2 focus:ring-blue-200 sm:text-base px-4 py-2 transition"
+                        placeholder="Leave blank to use employee code"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Leave blank to use employee code as username
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">
+                        <HiKey className="w-4 h-4 inline mr-1 text-blue-600" />
+                        Temporary Password (Optional)
+                      </label>
+                      <input
+                        type="text"
+                        name="tempPassword"
+                        value={facultyForm.tempPassword || ""}
+                        onChange={onChange}
+                        className="block w-full rounded-xl border border-gray-300 bg-white/60 shadow-inner focus:border-blue-400 focus:ring-2 focus:ring-blue-200 sm:text-base px-4 py-2 transition"
+                        placeholder="Leave blank for auto-generated password"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        If left blank, a secure temporary password will be
+                        generated automatically
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+
+          <div className="flex space-x-3 pt-4">
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-2 text-base font-semibold text-gray-700 bg-white/70 rounded-xl border border-gray-200 hover:bg-gray-100 transition shadow"
+              className="flex-1 bg-gray-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-gray-600 transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-6 py-2 text-base font-bold text-white bg-gradient-to-tr from-blue-500 to-cyan-400 rounded-xl shadow-lg hover:from-blue-600 hover:to-cyan-500 transition flex items-center gap-2 focus:ring-2 focus:ring-blue-300"
+              className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center"
             >
-              <HiCheck className="w-5 h-5" />
-              {editingFaculty ? "Update" : "Create"}
+              {editingFaculty ? (
+                <>
+                  <HiCheck className="w-4 h-4 mr-2" />
+                  Update
+                </>
+              ) : (
+                <>
+                  <HiPlus className="w-4 h-4 mr-2" />
+                  Create
+                </>
+              )}
             </button>
           </div>
         </form>

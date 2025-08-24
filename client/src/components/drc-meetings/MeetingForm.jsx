@@ -362,9 +362,14 @@ const MeetingForm = ({
                     >
                       <input
                         type="checkbox"
-                        checked={formData.attendees.includes(faculty._id)}
-                        onChange={() => handleAttendeeToggle(faculty._id)}
+                        checked={formData.attendees.includes(
+                          faculty.userId || faculty._id
+                        )}
+                        onChange={() =>
+                          handleAttendeeToggle(faculty.userId || faculty._id)
+                        }
                         className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        disabled={!faculty.userId}
                       />
                       <div>
                         <span className="text-sm font-medium text-gray-900">
@@ -372,6 +377,11 @@ const MeetingForm = ({
                         </span>
                         <p className="text-xs text-gray-500">
                           {faculty.designation}
+                          {!faculty.userId && (
+                            <span className="text-red-500 ml-1">
+                              (No user account)
+                            </span>
+                          )}
                         </p>
                       </div>
                     </label>

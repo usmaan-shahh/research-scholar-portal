@@ -5,11 +5,13 @@ import {
   useCreateFacultyMutation,
   useUpdateFacultyMutation,
   useDeleteFacultyMutation,
+  useCreateFacultyAccountMutation,
 } from "../../../apiSlices/facultyApi";
 import { useGetDepartmentsQuery } from "../../../apiSlices/departmentApi";
 import FacultyCard from "../cards/FacultyCard";
 import FacultyModal from "../modals/FacultyModal";
-import { HiUser, HiCheckCircle, HiAcademicCap } from "react-icons/hi";
+import CreateFacultyAccountModal from "../modals/CreateFacultyAccountModal";
+import { HiUser, HiCheckCircle, HiAcademicCap, HiKey } from "react-icons/hi";
 
 const FacultySection = ({
   lockedDepartmentCode = "",
@@ -17,6 +19,9 @@ const FacultySection = ({
   title = "Faculty Section",
 }) => {
   const [showFacultyModal, setShowFacultyModal] = useState(false);
+  const [showCreateAccountModal, setShowCreateAccountModal] = useState(false);
+  const [selectedFacultyForAccount, setSelectedFacultyForAccount] =
+    useState(null);
   const [editingFaculty, setEditingFaculty] = useState(null);
   const [facultyForm, setFacultyForm] = useState({
     employeeCode: "",
@@ -26,6 +31,10 @@ const FacultySection = ({
     isPhD: false,
     numberOfPublications: 0,
     isActive: true,
+    // Account creation fields
+    createUserAccount: false,
+    username: "",
+    tempPassword: "",
   });
   const [facultyFilters, setFacultyFilters] = useState({
     departmentCode: lockedDepartmentCode || "",
@@ -53,6 +62,7 @@ const FacultySection = ({
   const [createFaculty] = useCreateFacultyMutation();
   const [updateFaculty] = useUpdateFacultyMutation();
   const [deleteFaculty] = useDeleteFacultyMutation();
+  const [createFacultyAccount] = useCreateFacultyAccountMutation();
 
   const DESIGNATIONS = [
     { label: "Professor", value: "Professor", max: 8 },
@@ -84,19 +94,38 @@ const FacultySection = ({
       toast.error("Select a department");
       return;
     }
+
+    // Validate account creation fields if creating account
+    if (facultyForm.createUserAccount) {
+      if (!facultyForm.username) {
+        // Set username to employee code if not provided
+        facultyForm.username = facultyForm.employeeCode;
+      }
+    }
+
     try {
       const payload = {
         ...facultyForm,
         departmentCode: effectiveDepartmentCode,
         maxScholars: selectedDesignation.max,
       };
+
       if (editingFaculty) {
         await updateFaculty({ id: editingFaculty._id, ...payload }).unwrap();
-        toast.success("Faculty updated");
+        toast.success("Faculty updated successfully");
       } else {
-        await createFaculty(payload).unwrap();
-        toast.success("Faculty created");
+        const result = await createFaculty(payload).unwrap();
+        toast.success("Faculty created successfully");
+
+        // Show account creation details if account was created
+        if (result.userAccount) {
+          toast.info(
+            `User account created! Username: ${result.userAccount.username}, Temporary Password: ${result.userAccount.tempPassword}`,
+            { autoClose: 10000 }
+          );
+        }
       }
+
       setShowFacultyModal(false);
       setEditingFaculty(null);
       setFacultyForm({
@@ -107,6 +136,9 @@ const FacultySection = ({
         isPhD: false,
         numberOfPublications: 0,
         isActive: true,
+        createUserAccount: false,
+        username: "",
+        tempPassword: "",
       });
       refetchFaculties();
     } catch (err) {
@@ -124,6 +156,9 @@ const FacultySection = ({
       isPhD: faculty.isPhD,
       numberOfPublications: faculty.numberOfPublications ?? 0,
       isActive: faculty.isActive ?? true,
+      createUserAccount: false, // Don't show account creation for editing
+      username: faculty.username || "",
+      tempPassword: "",
     });
     setShowFacultyModal(true);
   };
@@ -150,11 +185,51 @@ const FacultySection = ({
       isPhD: false,
       numberOfPublications: 0,
       isActive: true,
+      createUserAccount: false,
+      username: "",
+      tempPassword: "",
     });
     setShowFacultyModal(true);
   };
 
   const handleFacultyModalClose = () => setShowFacultyModal(false);
+
+  // Account creation handlers
+  const handleCreateAccount = (faculty) => {
+    setSelectedFacultyForAccount(faculty);
+    setShowCreateAccountModal(true);
+  };
+
+  const handleCreateAccountSubmit = async (accountData) => {
+    try {
+      // Set username to employee code if not provided
+      if (!accountData.username) {
+        accountData.username = accountData.facultyId
+          ? faculties.find((f) => f._id === accountData.facultyId)?.employeeCode
+          : accountData.employeeCode;
+      }
+
+      const result = await createFacultyAccount(accountData).unwrap();
+      toast.success("Faculty account created successfully");
+
+      // Show account details
+      toast.info(
+        `User account created! Username: ${result.userAccount.username}, Temporary Password: ${result.userAccount.tempPassword}`,
+        { autoClose: 10000 }
+      );
+
+      setShowCreateAccountModal(false);
+      setSelectedFacultyForAccount(null);
+      refetchFaculties();
+    } catch (err) {
+      toast.error(err.data?.message || "Failed to create account");
+    }
+  };
+
+  const handleCreateAccountModalClose = () => {
+    setShowCreateAccountModal(false);
+    setSelectedFacultyForAccount(null);
+  };
 
   const handleFacultyFilterChange = (e) => {
     const { name, value } = e.target;
@@ -226,7 +301,7 @@ const FacultySection = ({
         <>
           {/* Summary Section */}
           {faculties.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
               <div className="bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-lg p-4">
                 <div className="flex items-center justify-between">
                   <div>
@@ -280,6 +355,22 @@ const FacultySection = ({
                   </div>
                 </div>
               </div>
+
+              <div className="bg-gradient-to-r from-purple-50 to-purple-100 border border-purple-200 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-purple-600">
+                      With User Accounts
+                    </p>
+                    <p className="text-2xl font-bold text-purple-900">
+                      {faculties.filter((f) => f.hasUserAccount).length}
+                    </p>
+                  </div>
+                  <div className="w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center">
+                    <HiKey className="w-5 h-5 text-white" />
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 
@@ -298,6 +389,7 @@ const FacultySection = ({
                   departments={departments}
                   onEdit={handleFacultyEdit}
                   onDelete={handleFacultyDelete}
+                  onCreateAccount={handleCreateAccount}
                 />
               ))
             )}
@@ -316,6 +408,14 @@ const FacultySection = ({
         onClose={handleFacultyModalClose}
         onSubmit={handleFacultySubmit}
         onChange={handleFacultyChange}
+      />
+
+      {/* Create Faculty Account Modal */}
+      <CreateFacultyAccountModal
+        showModal={showCreateAccountModal}
+        faculty={selectedFacultyForAccount}
+        onClose={handleCreateAccountModalClose}
+        onSubmit={handleCreateAccountSubmit}
       />
     </div>
   );
