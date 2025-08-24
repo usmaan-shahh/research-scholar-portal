@@ -2,15 +2,34 @@ import dotenv from "dotenv";
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import path from "path";
+import { fileURLToPath } from "url";
+import fs from "fs";
 import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import departmentRoutes from "./routes/departmentRoutes.js";
 import facultyRoutes from "./routes/facultyRoutes.js";
 import scholarRoutes from "./routes/scholarRoutes.js";
+import drcMeetingRoutes from "./routes/drcMeetingRoutes.js";
 import connectDB from "./configuration/connectDB.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 dotenv.config();
 
 const app = express();
+
+// Create uploads directory if it doesn't exist
+const uploadsDir = path.join(__dirname, "uploads");
+const minutesDir = path.join(uploadsDir, "minutes");
+
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+if (!fs.existsSync(minutesDir)) {
+  fs.mkdirSync(minutesDir, { recursive: true });
+}
 
 // Middleware
 app.use(express.json());
@@ -24,12 +43,16 @@ app.use(
   })
 );
 
+// Serve uploaded files
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/departments", departmentRoutes);
 app.use("/api/faculties", facultyRoutes);
 app.use("/api/scholars", scholarRoutes);
+app.use("/api/drc-meetings", drcMeetingRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

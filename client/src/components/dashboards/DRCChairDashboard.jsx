@@ -5,14 +5,18 @@ import {
   FaUserGraduate,
   FaUserTie,
   FaExchangeAlt,
+  FaCalendarAlt,
 } from "react-icons/fa";
 import { toast } from "react-toastify";
 import { useGetScholarsQuery } from "../../apiSlices/scholarApi";
+import { useGetMeetingStatsQuery } from "../../apiSlices/drcMeetingApi";
 import ScholarsSection from "../admin/sections/ScholarsSection";
 import SupervisorAssignmentModal from "../admin/modals/SupervisorAssignmentModal";
+import DRCMeetingsDashboard from "../drc-meetings/DRCMeetingsDashboard";
 
 const TABS = {
   SCHOLARS_AND_ASSIGNMENTS: "Scholars & Assignments",
+  MEETINGS: "Meetings",
 };
 
 const DRCChairDashboard = () => {
@@ -61,6 +65,14 @@ const DRCChairDashboard = () => {
     refetch: refetchScholars,
   } = useGetScholarsQuery(departmentCode ? queryParams : undefined);
 
+  // Get meetings statistics
+  const {
+    data: meetingsStats = {},
+    isLoading: meetingsStatsLoading,
+  } = useGetMeetingStatsQuery(
+    departmentCode ? { departmentCode } : undefined
+  );
+
   // Debug API call details
   useEffect(() => {
     if (departmentCode) {
@@ -79,6 +91,11 @@ const DRCChairDashboard = () => {
     (scholar) => scholar.supervisor
   ).length;
   const scholarsWithoutSupervisor = totalScholars - scholarsWithSupervisor;
+
+  // Meetings statistics
+  const totalMeetings = meetingsStats.totalMeetings || 0;
+  const upcomingMeetings = meetingsStats.upcomingMeetings || 0;
+  const completedMeetings = meetingsStats.completedMeetings || 0;
 
   const handleSupervisorAssignment = (scholar) => {
     setSelectedScholar(scholar);
@@ -128,7 +145,7 @@ const DRCChairDashboard = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6 mb-8">
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center">
             <div className="bg-blue-100 p-3 rounded-full">
@@ -176,6 +193,54 @@ const DRCChairDashboard = () => {
             </div>
           </div>
         </div>
+
+        <div className="bg-white rounded-lg shadow p-6">
+          <div className="flex items-center">
+            <div className="bg-purple-100 p-3 rounded-full">
+              <FaCalendarAlt className="text-purple-600 text-xl" />
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">
+                Total Meetings
+              </p>
+              <p className="text-2xl font-bold text-gray-900">
+                {meetingsStatsLoading ? "..." : totalMeetings}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow p-6">
+          <div className="flex items-center">
+            <div className="bg-blue-100 p-3 rounded-full">
+              <FaCalendarAlt className="text-blue-600 text-xl" />
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">
+                Upcoming Meetings
+              </p>
+              <p className="text-2xl font-bold text-gray-900">
+                {meetingsStatsLoading ? "..." : upcomingMeetings}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow p-6">
+          <div className="flex items-center">
+            <div className="bg-red-100 p-3 rounded-full">
+              <FaCalendarAlt className="text-red-600 text-xl" />
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-600">
+                Completed Meetings
+              </p>
+              <p className="text-2xl font-bold text-gray-900">
+                {meetingsStatsLoading ? "..." : completedMeetings}
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Tabs */}
@@ -207,6 +272,14 @@ const DRCChairDashboard = () => {
             userRole="drc_chair"
             onSupervisorAssignment={handleSupervisorAssignment}
             showSupervisorAssignments={true}
+            onRefreshFaculties={handleRefreshFaculties}
+            refreshFacultiesRef={refreshFacultiesRef}
+          />
+        )}
+
+        {activeTab === TABS.MEETINGS && departmentCode && (
+          <DRCMeetingsDashboard
+            departmentCode={departmentCode}
             onRefreshFaculties={handleRefreshFaculties}
             refreshFacultiesRef={refreshFacultiesRef}
           />
