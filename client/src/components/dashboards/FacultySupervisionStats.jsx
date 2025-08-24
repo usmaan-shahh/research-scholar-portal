@@ -3,20 +3,14 @@ import {
   FaUserGraduate,
   FaChartLine,
   FaCalendarAlt,
-  FaUniversity,
   FaBook,
-  FaUserTie,
-  FaExclamationTriangle,
-  FaCheckCircle,
 } from "react-icons/fa";
-import { HiAcademicCap, HiStatusOnline, HiStatusOffline } from "react-icons/hi";
+import { HiAcademicCap } from "react-icons/hi";
 
 const FacultySupervisionStats = ({ scholars, supervisionStats }) => {
-  // Calculate additional statistics
   const additionalStats = useMemo(() => {
     if (!scholars.length) return {};
 
-    // Calculate average CGPA
     const pgCgpas = scholars.filter((s) => s.pgCgpa).map((s) => s.pgCgpa);
     const bgCgpas = scholars.filter((s) => s.bgCgpa).map((s) => s.bgCgpa);
 
@@ -27,13 +21,11 @@ const FacultySupervisionStats = ({ scholars, supervisionStats }) => {
       ? (bgCgpas.reduce((a, b) => a + b, 0) / bgCgpas.length).toFixed(2)
       : "N/A";
 
-    // Calculate research areas distribution
     const researchAreas = scholars
       .filter((s) => s.areaOfResearch)
       .map((s) => s.areaOfResearch);
     const uniqueResearchAreas = [...new Set(researchAreas)];
 
-    // Calculate admission year distribution
     const admissionYears = scholars
       .filter((s) => s.dateOfAdmission)
       .map((s) => new Date(s.dateOfAdmission).getFullYear());
@@ -42,7 +34,6 @@ const FacultySupervisionStats = ({ scholars, supervisionStats }) => {
       return acc;
     }, {});
 
-    // Calculate progress distribution
     const progressDistribution = {
       beginner: scholars.filter((s) => s.isActive && !s.areaOfResearch).length,
       progress: scholars.filter(
@@ -61,14 +52,6 @@ const FacultySupervisionStats = ({ scholars, supervisionStats }) => {
     };
   }, [scholars]);
 
-  // Format year distribution for display
-  const formatYearDistribution = (yearDistribution) => {
-    return Object.entries(yearDistribution)
-      .sort(([a], [b]) => b - a)
-      .map(([year, count]) => `${year}: ${count}`)
-      .join(", ");
-  };
-
   return (
     <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8">
       <h2 className="text-2xl font-bold text-gray-800 mb-6">
@@ -76,7 +59,6 @@ const FacultySupervisionStats = ({ scholars, supervisionStats }) => {
       </h2>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Overview Statistics */}
         <div>
           <h3 className="text-lg font-semibold text-gray-700 mb-4 flex items-center">
             <FaChartLine className="w-5 h-5 mr-2 text-blue-500" />
@@ -118,7 +100,6 @@ const FacultySupervisionStats = ({ scholars, supervisionStats }) => {
           </div>
         </div>
 
-        {/* Academic Performance */}
         <div>
           <h3 className="text-lg font-semibold text-gray-700 mb-4 flex items-center">
             <HiAcademicCap className="w-5 h-5 mr-2 text-indigo-500" />
@@ -153,7 +134,6 @@ const FacultySupervisionStats = ({ scholars, supervisionStats }) => {
         </div>
       </div>
 
-      {/* Progress Distribution */}
       <div className="mt-8">
         <h3 className="text-lg font-semibold text-gray-700 mb-4 flex items-center">
           <FaUserGraduate className="w-5 h-5 mr-2 text-green-500" />
@@ -227,9 +207,7 @@ const FacultySupervisionStats = ({ scholars, supervisionStats }) => {
         </div>
       </div>
 
-      {/* Research Areas and Year Distribution */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
-        {/* Research Areas */}
         <div>
           <h3 className="text-lg font-semibold text-gray-700 mb-4 flex items-center">
             <FaBook className="w-5 h-5 mr-2 text-purple-500" />
@@ -257,7 +235,6 @@ const FacultySupervisionStats = ({ scholars, supervisionStats }) => {
           )}
         </div>
 
-        {/* Year Distribution */}
         <div>
           <h3 className="text-lg font-semibold text-gray-700 mb-4 flex items-center">
             <FaCalendarAlt className="w-5 h-5 mr-2 text-orange-500" />
@@ -288,7 +265,6 @@ const FacultySupervisionStats = ({ scholars, supervisionStats }) => {
         </div>
       </div>
 
-      {/* Quick Actions */}
       <div className="mt-8 pt-6 border-t border-gray-200">
         <h3 className="text-lg font-semibold text-gray-700 mb-4">
           Quick Actions

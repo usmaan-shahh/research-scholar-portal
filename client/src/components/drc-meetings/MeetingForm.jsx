@@ -32,7 +32,6 @@ const MeetingForm = ({
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
-  // Initialize form with meeting data if editing
   useEffect(() => {
     if (meeting) {
       setFormData({
@@ -119,7 +118,6 @@ const MeetingForm = ({
       [name]: value,
     }));
 
-    // Clear error when user starts typing
     if (errors[name]) {
       setErrors((prev) => ({
         ...prev,
@@ -148,7 +146,6 @@ const MeetingForm = ({
 
   return (
     <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-      {/* Header */}
       <div className="flex items-center justify-between p-6 border-b border-gray-200">
         <div className="flex items-center gap-3">
           <div className="bg-blue-100 p-2 rounded-full">
@@ -173,10 +170,8 @@ const MeetingForm = ({
         </button>
       </div>
 
-      {/* Form */}
       <form onSubmit={handleSubmit} className="p-6 space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Title */}
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Meeting Title <span className="text-red-500">*</span>
@@ -196,7 +191,6 @@ const MeetingForm = ({
             )}
           </div>
 
-          {/* Date */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Date <span className="text-red-500">*</span>
@@ -218,7 +212,6 @@ const MeetingForm = ({
             )}
           </div>
 
-          {/* Time */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Time <span className="text-red-500">*</span>
@@ -241,7 +234,6 @@ const MeetingForm = ({
             )}
           </div>
 
-          {/* Venue */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Venue <span className="text-red-500">*</span>
@@ -264,7 +256,6 @@ const MeetingForm = ({
             )}
           </div>
 
-          {/* Meeting Type */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Meeting Type
@@ -283,7 +274,6 @@ const MeetingForm = ({
             </select>
           </div>
 
-          {/* Department */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Department <span className="text-red-500">*</span>
@@ -311,7 +301,6 @@ const MeetingForm = ({
           </div>
         </div>
 
-        {/* Agenda */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Agenda <span className="text-red-500">*</span>
@@ -331,7 +320,6 @@ const MeetingForm = ({
           )}
         </div>
 
-        {/* Notes */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Additional Notes
@@ -346,7 +334,6 @@ const MeetingForm = ({
           />
         </div>
 
-        {/* Attendees */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Select Attendees
@@ -400,7 +387,6 @@ const MeetingForm = ({
           )}
         </div>
 
-        {/* Action Buttons */}
         <div className="flex justify-end gap-3 pt-6 border-t border-gray-200">
           <button
             type="button"

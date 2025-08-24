@@ -3,7 +3,6 @@ import User from "../models/User.js";
 
 export const protect = async (req, res, next) => {
   try {
-    // Get token from cookies
     const token = req.cookies.jwt;
 
     if (!token) {
@@ -11,10 +10,8 @@ export const protect = async (req, res, next) => {
     }
 
     try {
-      // Verify token
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-      // Get user from token
       const user = await User.findById(decoded.userId).select("-password");
 
       if (!user) {
@@ -29,7 +26,6 @@ export const protect = async (req, res, next) => {
           .json({ message: "Not authorized, user is inactive" });
       }
 
-      // Enforce password change flow
       const originalUrl = req.originalUrl || "";
       const isChangePassword =
         req.method === "POST" &&
@@ -42,7 +38,6 @@ export const protect = async (req, res, next) => {
         });
       }
 
-      // Add user to request object
       req.user = user;
       next();
     } catch (error) {
@@ -55,10 +50,8 @@ export const protect = async (req, res, next) => {
   }
 };
 
-// Middleware to check user roles
 export const authorize = (...roles) => {
   return (req, res, next) => {
-    // Flatten the roles array if it's nested
     const flatRoles = roles.flat();
 
     console.log("=== Authorization Debug ===");
@@ -78,7 +71,7 @@ export const authorize = (...roles) => {
       console.log("❌ Required roles:", flatRoles);
       console.log("❌ Route:", req.originalUrl);
       console.log("❌ Method:", req.method);
-      
+
       return res.status(403).json({
         message: `User role ${req.user?.role} is not authorized to access this route`,
         userRole: req.user?.role,

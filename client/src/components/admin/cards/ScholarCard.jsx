@@ -35,14 +35,12 @@ const ScholarCard = ({
         !scholar.isActive ? "opacity-60 grayscale" : ""
       }`}
     >
-      {/* Inactive Banner */}
       {!scholar.isActive && (
         <div className="bg-red-500 text-white text-center py-2 px-4 font-semibold text-sm">
           ⚠️ SCHOLAR IS INACTIVE - NO MODIFICATIONS ALLOWED
         </div>
       )}
 
-      {/* Header */}
       <div
         className={`p-4 text-white ${
           !scholar.isActive
@@ -81,7 +79,6 @@ const ScholarCard = ({
               {scholar.isActive ? "Active" : "Inactive"}
             </span>
 
-            {/* Supervisor Assignment Status */}
             {showSupervisorAssignments && (
               <span
                 className={`px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm ${
@@ -99,9 +96,7 @@ const ScholarCard = ({
         </div>
       </div>
 
-      {/* Content */}
       <div className="p-4 space-y-3">
-        {/* Inactive Status Notice */}
         {!scholar.isActive && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
             <div className="flex items-center gap-2 text-red-700">
@@ -124,7 +119,6 @@ const ScholarCard = ({
           </div>
         )}
 
-        {/* Basic Info */}
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
             <span className="text-gray-600">Email:</span>
@@ -145,7 +139,6 @@ const ScholarCard = ({
           </div>
         </div>
 
-        {/* Academic Info */}
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
             <span className="text-gray-600">PG Degree:</span>
@@ -165,7 +158,6 @@ const ScholarCard = ({
           </div>
         </div>
 
-        {/* Research Info */}
         <div className="space-y-2">
           <div className="text-sm">
             <span className="text-gray-600">Research Area:</span>
@@ -181,7 +173,6 @@ const ScholarCard = ({
           </div>
         </div>
 
-        {/* Supervisor Info */}
         <div
           className={`space-y-2 ${
             showSupervisorAssignments
@@ -203,7 +194,6 @@ const ScholarCard = ({
                 : "Not assigned"}
             </p>
 
-            {/* Show supervision load info for assigned supervisor */}
             {showSupervisorAssignments &&
               scholar.supervisor &&
               (() => {
@@ -263,7 +253,6 @@ const ScholarCard = ({
             </div>
           )}
 
-          {/* Quick Assignment Button */}
           {showSupervisorAssignments && onSupervisorAssignment && (
             <div className="pt-2">
               <button
@@ -290,7 +279,6 @@ const ScholarCard = ({
           )}
         </div>
 
-        {/* Dates */}
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
             <span className="text-gray-600">Admission:</span>
@@ -307,7 +295,6 @@ const ScholarCard = ({
         </div>
       </div>
 
-      {/* Actions */}
       <div className="px-4 py-3 bg-gray-50 border-t border-gray-100">
         <div className="flex items-center justify-between">
           <button
@@ -318,7 +305,6 @@ const ScholarCard = ({
             <span>{showProfile ? "Hide" : "View"} Profile</span>
           </button>
           <div className="flex space-x-2">
-            {/* Supervisor Assignment Button for DRC Chair */}
             {userRole === "drc_chair" && onSupervisorAssignment && (
               <button
                 onClick={() => onSupervisorAssignment(scholar)}
@@ -399,7 +385,6 @@ const ScholarCard = ({
               </svg>
             </button>
 
-            {/* Reactivation Button for Inactive Scholars (Admin Only) */}
             {!scholar.isActive && userRole === "admin" && (
               <button
                 onClick={() => onDelete(scholar._id, "reactivate")}
@@ -425,7 +410,6 @@ const ScholarCard = ({
         </div>
       </div>
 
-      {/* Expanded Profile View */}
       {showProfile && (
         <div className="px-4 py-3 bg-gray-50 border-t border-gray-100 space-y-3">
           <div className="text-sm">

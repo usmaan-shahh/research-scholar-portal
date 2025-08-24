@@ -9,8 +9,6 @@ const PrivateRoute = ({ children, allowedRoles }) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Enforce password change for users with mustChangePassword flag
-  // Only allow access to change-password route
   if (user.mustChangePassword && location.pathname !== "/change-password") {
     return <Navigate to="/change-password" replace />;
   }

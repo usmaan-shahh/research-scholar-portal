@@ -14,17 +14,20 @@ import {
 } from "react-icons/hi";
 import { FiEdit2, FiTrash2 } from "react-icons/fi";
 
-const FacultyCard = ({ faculty, departments, onEdit, onDelete, onCreateAccount }) => {
-  // Determine supervision eligibility
+const FacultyCard = ({
+  faculty,
+  departments,
+  onEdit,
+  onDelete,
+  onCreateAccount,
+}) => {
   const isEligible = faculty.isEligibleForSupervision;
-  
+
   return (
     <div className="group relative bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1 w-full min-w-[320px]">
-      {/* Gradient accent bar */}
       <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 via-emerald-600 to-teal-500"></div>
 
       <div className="p-6">
-        {/* Header Section */}
         <div className="flex items-start justify-between mb-5">
           <div className="flex items-center flex-1 min-w-0">
             <div className="relative flex-shrink-0">
@@ -48,9 +51,7 @@ const FacultyCard = ({ faculty, departments, onEdit, onDelete, onCreateAccount }
           </div>
         </div>
 
-        {/* Content Section */}
         <div className="space-y-4">
-          {/* Department */}
           <div className="flex items-start">
             <div className="flex-shrink-0 w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center mr-3">
               <HiOutlineLocationMarker className="w-4 h-4 text-gray-500" />
@@ -66,7 +67,6 @@ const FacultyCard = ({ faculty, departments, onEdit, onDelete, onCreateAccount }
             </div>
           </div>
 
-          {/* Designation */}
           <div className="flex items-start">
             <div className="flex-shrink-0 w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center mr-3">
               <HiAcademicCap className="w-4 h-4 text-gray-500" />
@@ -81,7 +81,6 @@ const FacultyCard = ({ faculty, departments, onEdit, onDelete, onCreateAccount }
             </div>
           </div>
 
-          {/* User Account Status */}
           <div className="flex items-start">
             <div className="flex-shrink-0 w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center mr-3">
               <HiKey className="w-4 h-4 text-gray-500" />
@@ -114,7 +113,6 @@ const FacultyCard = ({ faculty, departments, onEdit, onDelete, onCreateAccount }
             </div>
           </div>
 
-          {/* Supervision Eligibility */}
           <div className="flex items-start">
             <div className="flex-shrink-0 w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center mr-3">
               {isEligible ? (
@@ -144,7 +142,6 @@ const FacultyCard = ({ faculty, departments, onEdit, onDelete, onCreateAccount }
             </div>
           </div>
 
-          {/* Max Scholars and PhD Status */}
           <div className="flex items-start">
             <div className="flex-shrink-0 w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center mr-3">
               <HiCheckCircle className="w-4 h-4 text-gray-500" />
@@ -170,7 +167,6 @@ const FacultyCard = ({ faculty, departments, onEdit, onDelete, onCreateAccount }
             </div>
           </div>
 
-          {/* Number of Publications */}
           <div className="flex items-start">
             <div className="flex-shrink-0 w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center mr-3">
               <HiBookOpen className="w-4 h-4 text-gray-500" />
@@ -187,7 +183,6 @@ const FacultyCard = ({ faculty, departments, onEdit, onDelete, onCreateAccount }
         </div>
       </div>
 
-      {/* Action Bar */}
       <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-gray-100 border-t border-gray-200 flex justify-between items-center">
         <div className="flex items-center text-xs text-gray-500">
           {faculty.isActive ? (
@@ -201,7 +196,6 @@ const FacultyCard = ({ faculty, departments, onEdit, onDelete, onCreateAccount }
           )}
         </div>
         <div className="flex items-center space-x-2">
-          {/* Create Account Button - Only show if no account exists */}
           {!faculty.hasUserAccount && onCreateAccount && (
             <button
               onClick={() => onCreateAccount(faculty)}
@@ -228,7 +222,6 @@ const FacultyCard = ({ faculty, departments, onEdit, onDelete, onCreateAccount }
         </div>
       </div>
 
-      {/* Hover overlay effect */}
       <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 to-teal-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
     </div>
   );

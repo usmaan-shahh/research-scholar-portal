@@ -31,7 +31,6 @@ const FacultySection = ({
     isPhD: false,
     numberOfPublications: 0,
     isActive: true,
-    // Account creation fields
     createUserAccount: false,
     username: "",
     tempPassword: "",
@@ -70,7 +69,6 @@ const FacultySection = ({
     { label: "Assistant Professor", value: "Assistant Professor", max: 4 },
   ];
 
-  // Faculty handlers
   const handleFacultyChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFacultyForm((prev) => ({
@@ -95,35 +93,31 @@ const FacultySection = ({
       return;
     }
 
-    // Validate account creation fields if creating account
     if (facultyForm.createUserAccount) {
       if (!facultyForm.username) {
-        // Set username to employee code if not provided
-        facultyForm.username = facultyForm.employeeCode;
+        toast.error("Username is required for account creation");
+        return;
+      }
+      if (!facultyForm.tempPassword) {
+        toast.error("Temporary password is required for account creation");
+        return;
       }
     }
 
     try {
-      const payload = {
-        ...facultyForm,
-        departmentCode: effectiveDepartmentCode,
-        maxScholars: selectedDesignation.max,
-      };
-
       if (editingFaculty) {
-        await updateFaculty({ id: editingFaculty._id, ...payload }).unwrap();
+        await updateFaculty({
+          id: editingFaculty._id,
+          ...facultyForm,
+          departmentCode: effectiveDepartmentCode,
+        }).unwrap();
         toast.success("Faculty updated successfully");
       } else {
-        const result = await createFaculty(payload).unwrap();
+        await createFaculty({
+          ...facultyForm,
+          departmentCode: effectiveDepartmentCode,
+        }).unwrap();
         toast.success("Faculty created successfully");
-
-        // Show account creation details if account was created
-        if (result.userAccount) {
-          toast.info(
-            `User account created! Username: ${result.userAccount.username}, Temporary Password: ${result.userAccount.tempPassword}`,
-            { autoClose: 10000 }
-          );
-        }
       }
 
       setShowFacultyModal(false);
@@ -149,15 +143,15 @@ const FacultySection = ({
   const handleFacultyEdit = (faculty) => {
     setEditingFaculty(faculty);
     setFacultyForm({
-      employeeCode: faculty.employeeCode,
-      name: faculty.name,
-      departmentCode: lockedDepartmentCode || faculty.departmentCode,
-      designation: faculty.designation,
-      isPhD: faculty.isPhD,
-      numberOfPublications: faculty.numberOfPublications ?? 0,
-      isActive: faculty.isActive ?? true,
-      createUserAccount: false, // Don't show account creation for editing
-      username: faculty.username || "",
+      employeeCode: faculty.employeeCode || "",
+      name: faculty.name || "",
+      departmentCode: faculty.departmentCode || lockedDepartmentCode || "",
+      designation: faculty.designation || "",
+      isPhD: faculty.isPhD || false,
+      numberOfPublications: faculty.numberOfPublications || 0,
+      isActive: faculty.isActive !== undefined ? faculty.isActive : true,
+      createUserAccount: false,
+      username: "",
       tempPassword: "",
     });
     setShowFacultyModal(true);
@@ -167,7 +161,7 @@ const FacultySection = ({
     if (window.confirm("Delete this faculty member?")) {
       try {
         await deleteFaculty(id).unwrap();
-        toast.success("Faculty deleted");
+        toast.success("Faculty deleted successfully");
         refetchFaculties();
       } catch (err) {
         toast.error(err.data?.message || "Delete failed");
@@ -194,7 +188,6 @@ const FacultySection = ({
 
   const handleFacultyModalClose = () => setShowFacultyModal(false);
 
-  // Account creation handlers
   const handleCreateAccount = (faculty) => {
     setSelectedFacultyForAccount(faculty);
     setShowCreateAccountModal(true);
@@ -202,22 +195,11 @@ const FacultySection = ({
 
   const handleCreateAccountSubmit = async (accountData) => {
     try {
-      // Set username to employee code if not provided
-      if (!accountData.username) {
-        accountData.username = accountData.facultyId
-          ? faculties.find((f) => f._id === accountData.facultyId)?.employeeCode
-          : accountData.employeeCode;
-      }
-
-      const result = await createFacultyAccount(accountData).unwrap();
+      await createFacultyAccount({
+        facultyId: selectedFacultyForAccount._id,
+        ...accountData,
+      }).unwrap();
       toast.success("Faculty account created successfully");
-
-      // Show account details
-      toast.info(
-        `User account created! Username: ${result.userAccount.username}, Temporary Password: ${result.userAccount.tempPassword}`,
-        { autoClose: 10000 }
-      );
-
       setShowCreateAccountModal(false);
       setSelectedFacultyForAccount(null);
       refetchFaculties();
@@ -226,197 +208,180 @@ const FacultySection = ({
     }
   };
 
-  const handleCreateAccountModalClose = () => {
+  const handleCreateAccountClose = () => {
     setShowCreateAccountModal(false);
     setSelectedFacultyForAccount(null);
   };
 
-  const handleFacultyFilterChange = (e) => {
-    const { name, value } = e.target;
-    setFacultyFilters((prev) => ({ ...prev, [name]: value }));
+  const handleFilterChange = (key, value) => {
+    setFacultyFilters((prev) => ({ ...prev, [key]: value }));
   };
+
+  const clearFilters = () => {
+    setFacultyFilters({
+      departmentCode: lockedDepartmentCode || "",
+      designation: "",
+      supervisionEligibility: "",
+    });
+  };
+
+  const filteredFaculties = faculties.filter((faculty) => {
+    if (
+      facultyFilters.designation &&
+      faculty.designation !== facultyFilters.designation
+    ) {
+      return false;
+    }
+    if (
+      facultyFilters.supervisionEligibility === "eligible" &&
+      !faculty.isPhD
+    ) {
+      return false;
+    }
+    if (
+      facultyFilters.supervisionEligibility === "ineligible" &&
+      faculty.isPhD
+    ) {
+      return false;
+    }
+    return true;
+  });
 
   return (
     <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 transition-all duration-200">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
-        <h2 className="text-2xl font-bold text-gray-800">{title}</h2>
+        <h2 className="text-2xl font-bold text-gray-800">
+          <HiAcademicCap className="inline-block w-8 h-8 mr-3 text-blue-600" />
+          {title}
+        </h2>
         <button
           onClick={handleFacultyAdd}
-          className="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold shadow hover:bg-blue-700 transition-all duration-150"
+          className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
         >
-          Add New Faculty
+          <HiUser className="w-5 h-5 mr-2" />
+          Add Faculty
         </button>
       </div>
 
-      {/* Filters */}
       {!hideFilters && (
-        <div className="flex flex-col md:flex-row gap-4 mb-6">
-          <select
-            name="departmentCode"
-            value={lockedDepartmentCode || facultyFilters.departmentCode}
-            onChange={handleFacultyFilterChange}
-            disabled={!!lockedDepartmentCode}
-            className="border rounded-lg px-3 py-2 focus:border-blue-500 focus:ring-blue-500"
-          >
-            <option value="">All Departments</option>
-            {departments.map((dept) => (
-              <option key={dept.code} value={dept.code}>
-                {dept.name}
-              </option>
-            ))}
-          </select>
-          <select
-            name="designation"
-            value={facultyFilters.designation}
-            onChange={handleFacultyFilterChange}
-            className="border rounded-lg px-3 py-2 focus:border-blue-500 focus:ring-blue-500"
-          >
-            <option value="">All Designations</option>
-            {DESIGNATIONS.map((d) => (
-              <option key={d.value} value={d.value}>
-                {d.label}
-              </option>
-            ))}
-          </select>
-          <select
-            name="supervisionEligibility"
-            value={facultyFilters.supervisionEligibility}
-            onChange={handleFacultyFilterChange}
-            className="border rounded-lg px-3 py-2 focus:border-blue-500 focus:ring-blue-500"
-          >
-            <option value="">All Eligibility Status</option>
-            <option value="eligible">Eligible for Supervision</option>
-            <option value="not-eligible">Not Eligible for Supervision</option>
-          </select>
+        <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {!lockedDepartmentCode && (
+              <select
+                value={facultyFilters.departmentCode}
+                onChange={(e) =>
+                  handleFilterChange("departmentCode", e.target.value)
+                }
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">All Departments</option>
+                {departments.map((dept) => (
+                  <option key={dept._id} value={dept.code}>
+                    {dept.name} ({dept.code})
+                  </option>
+                ))}
+              </select>
+            )}
+
+            <select
+              value={facultyFilters.designation}
+              onChange={(e) =>
+                handleFilterChange("designation", e.target.value)
+              }
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="">All Designations</option>
+              {DESIGNATIONS.map((designation) => (
+                <option key={designation.value} value={designation.value}>
+                  {designation.label}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={facultyFilters.supervisionEligibility}
+              onChange={(e) =>
+                handleFilterChange("supervisionEligibility", e.target.value)
+              }
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="">All Faculty</option>
+              <option value="eligible">PhD Holders Only</option>
+              <option value="ineligible">Non-PhD Holders Only</option>
+            </select>
+          </div>
+
+          <div className="mt-4 flex justify-end">
+            <button
+              onClick={clearFilters}
+              className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              Clear Filters
+            </button>
+          </div>
         </div>
       )}
 
       {facultyLoading ? (
-        <div className="text-gray-500">Loading faculty...</div>
+        <div className="flex justify-center items-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </div>
       ) : facultyError ? (
-        <div className="text-red-500">
-          Error: {facultyError.message || "Failed to load faculty"}
+        <div className="text-center py-12 text-red-500">
+          <p className="text-lg font-semibold">Error loading faculty</p>
+          <p className="text-sm">
+            {facultyError.data?.message ||
+              facultyError.message ||
+              "Failed to load faculty"}
+          </p>
+        </div>
+      ) : filteredFaculties.length === 0 ? (
+        <div className="text-center py-12 text-gray-500">
+          <HiUser className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+          <p className="text-lg font-medium">No faculty found</p>
+          <p className="text-sm">
+            {Object.values(facultyFilters).some((v) => v)
+              ? "Try adjusting your filters"
+              : "No faculty members have been added yet"}
+          </p>
         </div>
       ) : (
-        <>
-          {/* Summary Section */}
-          {faculties.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-              <div className="bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-lg p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-blue-600">
-                      Total Faculty
-                    </p>
-                    <p className="text-2xl font-bold text-blue-900">
-                      {faculties.length}
-                    </p>
-                  </div>
-                  <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
-                    <HiUser className="w-5 h-5 text-white" />
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-gradient-to-r from-green-50 to-green-100 border border-green-200 rounded-lg p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-green-600">
-                      Eligible for Supervision
-                    </p>
-                    <p className="text-2xl font-bold text-green-900">
-                      {
-                        faculties.filter((f) => f.isEligibleForSupervision)
-                          .length
-                      }
-                    </p>
-                  </div>
-                  <div className="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center">
-                    <HiCheckCircle className="w-5 h-5 text-white" />
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-gradient-to-r from-amber-50 to-amber-100 border border-amber-200 rounded-lg p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-amber-600">
-                      Not Eligible
-                    </p>
-                    <p className="text-2xl font-bold text-amber-900">
-                      {
-                        faculties.filter((f) => !f.isEligibleForSupervision)
-                          .length
-                      }
-                    </p>
-                  </div>
-                  <div className="w-10 h-10 bg-amber-500 rounded-lg flex items-center justify-center">
-                    <HiAcademicCap className="w-5 h-4 text-white" />
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-gradient-to-r from-purple-50 to-purple-100 border border-purple-200 rounded-lg p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-purple-600">
-                      With User Accounts
-                    </p>
-                    <p className="text-2xl font-bold text-purple-900">
-                      {faculties.filter((f) => f.hasUserAccount).length}
-                    </p>
-                  </div>
-                  <div className="w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center">
-                    <HiKey className="w-5 h-5 text-white" />
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 xl:gap-8">
-            {faculties.length === 0 ? (
-              <div className="col-span-full text-center py-12 text-gray-400">
-                <HiUser className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                <p className="text-lg font-medium">No faculty found</p>
-                <p className="text-sm">Try adjusting your filters</p>
-              </div>
-            ) : (
-              faculties.map((faculty) => (
-                <FacultyCard
-                  key={faculty._id}
-                  faculty={faculty}
-                  departments={departments}
-                  onEdit={handleFacultyEdit}
-                  onDelete={handleFacultyDelete}
-                  onCreateAccount={handleCreateAccount}
-                />
-              ))
-            )}
-          </div>
-        </>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {filteredFaculties.map((faculty) => (
+            <FacultyCard
+              key={faculty._id}
+              faculty={faculty}
+              onEdit={() => handleFacultyEdit(faculty)}
+              onDelete={() => handleFacultyDelete(faculty._id)}
+              onCreateAccount={() => handleCreateAccount(faculty)}
+              canCreateAccount={!faculty.userAccount}
+            />
+          ))}
+        </div>
       )}
 
-      {/* Faculty Modal */}
-      <FacultyModal
-        lockedDepartmentCode={lockedDepartmentCode}
-        showModal={showFacultyModal}
-        editingFaculty={editingFaculty}
-        facultyForm={facultyForm}
-        departments={departments}
-        designations={DESIGNATIONS}
-        onClose={handleFacultyModalClose}
-        onSubmit={handleFacultySubmit}
-        onChange={handleFacultyChange}
-      />
+      {showFacultyModal && (
+        <FacultyModal
+          isOpen={showFacultyModal}
+          onClose={handleFacultyModalClose}
+          onSubmit={handleFacultySubmit}
+          formData={facultyForm}
+          onChange={handleFacultyChange}
+          editing={!!editingFaculty}
+          departments={departments}
+          designations={DESIGNATIONS}
+          lockedDepartmentCode={lockedDepartmentCode}
+        />
+      )}
 
-      {/* Create Faculty Account Modal */}
-      <CreateFacultyAccountModal
-        showModal={showCreateAccountModal}
-        faculty={selectedFacultyForAccount}
-        onClose={handleCreateAccountModalClose}
-        onSubmit={handleCreateAccountSubmit}
-      />
+      {showCreateAccountModal && selectedFacultyForAccount && (
+        <CreateFacultyAccountModal
+          isOpen={showCreateAccountModal}
+          onClose={handleCreateAccountClose}
+          onSubmit={handleCreateAccountSubmit}
+          faculty={selectedFacultyForAccount}
+        />
+      )}
     </div>
   );
 };

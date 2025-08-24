@@ -7,7 +7,6 @@ const drcMeetingSchema = new mongoose.Schema(
       required: true,
       unique: true,
       default: function () {
-        // Auto-generate meeting ID: DRC-YYYY-MM-DD-XXX
         const date = new Date();
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -104,7 +103,6 @@ const drcMeetingSchema = new mongoose.Schema(
   }
 );
 
-// Virtual field for meeting date formatting
 drcMeetingSchema.virtual("formattedDate").get(function () {
   return this.date
     ? this.date.toLocaleDateString("en-US", {
@@ -116,12 +114,10 @@ drcMeetingSchema.virtual("formattedDate").get(function () {
     : "N/A";
 });
 
-// Virtual field for meeting time formatting
 drcMeetingSchema.virtual("formattedTime").get(function () {
   return this.time || "N/A";
 });
 
-// Virtual field for meeting status with color
 drcMeetingSchema.virtual("statusInfo").get(function () {
   const statusConfig = {
     scheduled: {
@@ -150,7 +146,6 @@ drcMeetingSchema.virtual("statusInfo").get(function () {
   return statusConfig[this.status] || statusConfig.scheduled;
 });
 
-// Virtual field for meeting type with icon
 drcMeetingSchema.virtual("meetingTypeInfo").get(function () {
   const typeConfig = {
     "Monthly Review": {
@@ -178,13 +173,11 @@ drcMeetingSchema.virtual("meetingTypeInfo").get(function () {
   return typeConfig[this.meetingType] || typeConfig.Other;
 });
 
-// Index for efficient querying
 drcMeetingSchema.index({ departmentCode: 1, date: 1 });
 drcMeetingSchema.index({ status: 1, date: 1 });
 drcMeetingSchema.index({ createdBy: 1 });
 drcMeetingSchema.index({ attendees: 1 });
 
-// Pre-save middleware to ensure meetingId is unique
 drcMeetingSchema.pre("save", async function (next) {
   if (this.isNew && !this.meetingId) {
     let isUnique = false;

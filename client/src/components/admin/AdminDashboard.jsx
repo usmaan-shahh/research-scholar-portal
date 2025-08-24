@@ -15,7 +15,6 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
-      {/* Header */}
       <div className="flex items-center gap-3 mb-8">
         <div className="bg-blue-600 text-white rounded-full p-3 shadow">
           <FaUniversity size={28} />
@@ -25,7 +24,6 @@ const AdminDashboard = () => {
         </h1>
       </div>
 
-      {/* Tabs */}
       <div className="mb-8">
         <div className="flex gap-0 border-b border-gray-200">
           {Object.values(TABS).map((tab) => (
@@ -44,7 +42,6 @@ const AdminDashboard = () => {
         </div>
       </div>
 
-      {/* Tab Content */}
       <div className="max-w-5xl mx-auto">
         {activeTab === TABS.DEPARTMENTS && <DepartmentSection />}
         {activeTab === TABS.FACULTY && <FacultySection />}

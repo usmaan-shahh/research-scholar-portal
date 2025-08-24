@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { useChangePasswordMutation } from "../../apiSlices/userApi";
@@ -11,8 +11,6 @@ const ChangePassword = () => {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
   const [changePassword, { isLoading }] = useChangePasswordMutation();
-  const [shouldNavigate, setShouldNavigate] = useState(false);
-  const [navigationPath, setNavigationPath] = useState("");
 
   const [formData, setFormData] = useState({
     currentPassword: "",
@@ -24,30 +22,6 @@ const ChangePassword = () => {
     new: false,
     confirm: false,
   });
-
-  useEffect(() => {
-    // This useEffect is no longer needed - let PrivateRoute handle redirects
-    // to prevent conflicts with manual navigation after password change
-  }, []);
-
-  // Handle navigation after state update
-  useEffect(() => {
-    if (shouldNavigate && navigationPath) {
-      try {
-        navigate(navigationPath);
-        // Fallback navigation using window.location if navigate fails
-        setTimeout(() => {
-          if (window.location.pathname !== navigationPath) {
-            window.location.href = navigationPath;
-          }
-        }, 1000);
-      } catch (error) {
-        console.error("Navigation error:", error);
-        // Fallback to window.location
-        window.location.href = navigationPath;
-      }
-    }
-  }, [shouldNavigate, navigationPath, navigate]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -67,13 +41,11 @@ const ChangePassword = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validation
     if (formData.newPassword !== formData.confirmPassword) {
       toast.error("New passwords do not match");
       return;
     }
 
-    // Password policy: at least 8 characters with upper, lower case and a number
     const passwordPolicy = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
     if (!passwordPolicy.test(formData.newPassword)) {
       toast.error(
@@ -88,24 +60,20 @@ const ChangePassword = () => {
         newPassword: formData.newPassword,
       }).unwrap();
 
-      // Update the user state to reflect password change
       dispatch(updateUserField({ mustChangePassword: false }));
-
       toast.success("Password changed successfully!");
 
-      // Set navigation path and trigger navigation
-      if (user?.role === "main_office") {
-        setNavigationPath("/office-staff");
-      } else if (user?.role === "admin") {
-        setNavigationPath("/admin");
-      } else {
-        setNavigationPath("/");
-      }
+      const roleRoutes = {
+        main_office: "/office-staff",
+        admin: "/admin",
+        office_staff: "/office-staff",
+        supervisor: "/supervisor",
+        drc_chair: "/drc-chair",
+      };
 
-      // Trigger navigation in next render cycle
-      setShouldNavigate(true);
+      const navigationPath = roleRoutes[user?.role] || "/";
+      navigate(navigationPath);
     } catch (error) {
-      console.error("Password change error:", error);
       toast.error(error.data?.message || "Failed to change password");
     }
   };
@@ -117,7 +85,6 @@ const ChangePassword = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4">
       <div className="max-w-md w-full">
-        {/* Header */}
         <div className="text-center mb-8">
           <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
             <HiLockClosed className="w-8 h-8 text-blue-600" />
@@ -130,10 +97,8 @@ const ChangePassword = () => {
           </p>
         </div>
 
-        {/* Form */}
         <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Current Password */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Current Password
@@ -162,7 +127,6 @@ const ChangePassword = () => {
               </div>
             </div>
 
-            {/* New Password */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 New Password
@@ -200,7 +164,6 @@ const ChangePassword = () => {
               </div>
             </div>
 
-            {/* Confirm New Password */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Confirm New Password
@@ -229,7 +192,6 @@ const ChangePassword = () => {
               </div>
             </div>
 
-            {/* Submit Button */}
             <button
               type="submit"
               disabled={isLoading}
@@ -239,7 +201,6 @@ const ChangePassword = () => {
             </button>
           </form>
 
-          {/* Info */}
           <div className="mt-6 p-4 bg-blue-50 rounded-lg">
             <p className="text-sm text-blue-800">
               <strong>Note:</strong> After changing your password, you'll be

@@ -16,7 +16,6 @@ import { HiAcademicCap, HiStatusOnline, HiStatusOffline } from "react-icons/hi";
 const FacultyScholarCard = ({ scholar, onRefresh }) => {
   const [showDetails, setShowDetails] = useState(false);
 
-  // Format date for display
   const formatDate = (dateString) => {
     if (!dateString) return "Not specified";
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -26,7 +25,6 @@ const FacultyScholarCard = ({ scholar, onRefresh }) => {
     });
   };
 
-  // Calculate scholar's progress status
   const getProgressStatus = () => {
     if (!scholar.isActive)
       return { status: "inactive", color: "red", text: "Inactive" };
@@ -41,7 +39,6 @@ const FacultyScholarCard = ({ scholar, onRefresh }) => {
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden">
-      {/* Header with status indicator */}
       <div className="relative">
         <div
           className={`h-2 ${
@@ -72,7 +69,6 @@ const FacultyScholarCard = ({ scholar, onRefresh }) => {
       </div>
 
       <div className="p-6">
-        {/* Scholar Header */}
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center flex-1 min-w-0">
             <div className="relative flex-shrink-0">
@@ -99,7 +95,6 @@ const FacultyScholarCard = ({ scholar, onRefresh }) => {
           </div>
         </div>
 
-        {/* Basic Information */}
         <div className="space-y-3 mb-4">
           <div className="flex items-center text-sm text-gray-600">
             <FaUniversity className="w-4 h-4 mr-2 text-blue-500" />
@@ -119,7 +114,6 @@ const FacultyScholarCard = ({ scholar, onRefresh }) => {
             <span className="ml-1">{formatDate(scholar.dateOfJoining)}</span>
           </div>
 
-          {/* Academic Information */}
           {scholar.pgDegree && (
             <div className="flex items-center text-sm text-gray-600">
               <HiAcademicCap className="w-4 h-4 mr-2 text-indigo-500" />
@@ -140,7 +134,6 @@ const FacultyScholarCard = ({ scholar, onRefresh }) => {
             </div>
           )}
 
-          {/* Research Information */}
           {scholar.areaOfResearch && (
             <div className="flex items-start text-sm text-gray-600">
               <FaChartLine className="w-4 h-4 mr-2 text-orange-500 mt-0.5" />
@@ -158,7 +151,6 @@ const FacultyScholarCard = ({ scholar, onRefresh }) => {
           )}
         </div>
 
-        {/* Contact Information (if available) */}
         {(scholar.email || scholar.phone || scholar.address) && (
           <div className="border-t border-gray-100 pt-3 mb-4">
             <h4 className="text-sm font-semibold text-gray-700 mb-2">
@@ -187,7 +179,6 @@ const FacultyScholarCard = ({ scholar, onRefresh }) => {
           </div>
         )}
 
-        {/* Co-Supervisor Information */}
         {scholar.coSupervisor && (
           <div className="border-t border-gray-100 pt-3 mb-4">
             <h4 className="text-sm font-semibold text-gray-700 mb-2">
@@ -200,7 +191,6 @@ const FacultyScholarCard = ({ scholar, onRefresh }) => {
           </div>
         )}
 
-        {/* Action Buttons */}
         <div className="flex items-center justify-between pt-4 border-t border-gray-100">
           <div className="flex items-center text-xs text-gray-500">
             {scholar.isActive ? (
@@ -231,7 +221,6 @@ const FacultyScholarCard = ({ scholar, onRefresh }) => {
         </div>
       </div>
 
-      {/* Expandable Details Section */}
       {showDetails && (
         <div className="border-t border-gray-100 bg-gray-50 p-4">
           <h4 className="text-sm font-semibold text-gray-700 mb-3">

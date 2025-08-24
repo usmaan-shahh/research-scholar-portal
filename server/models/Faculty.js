@@ -39,7 +39,6 @@ const facultySchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
-    // User account fields
     username: {
       type: String,
       required: false,
@@ -65,7 +64,6 @@ const facultySchema = new mongoose.Schema(
   }
 );
 
-// Virtual field for current supervision load
 facultySchema.virtual("currentSupervisionLoad", {
   ref: "Scholar",
   localField: "_id",
@@ -73,7 +71,6 @@ facultySchema.virtual("currentSupervisionLoad", {
   count: true,
 });
 
-// Virtual field for current co-supervision load
 facultySchema.virtual("currentCoSupervisionLoad", {
   ref: "Scholar",
   localField: "_id",
@@ -81,26 +78,21 @@ facultySchema.virtual("currentCoSupervisionLoad", {
   count: true,
 });
 
-// Virtual field for total supervision load
 facultySchema.virtual("totalSupervisionLoad").get(function () {
   return (
     (this.currentSupervisionLoad || 0) + (this.currentCoSupervisionLoad || 0)
   );
 });
 
-// Virtual field for remaining supervision capacity
 facultySchema.virtual("remainingSupervisionCapacity").get(function () {
   return Math.max(0, this.maxScholars - (this.totalSupervisionLoad || 0));
 });
 
-// Virtual field for supervision eligibility
 facultySchema.virtual("isEligibleForSupervision").get(function () {
-  // Must have PhD to be eligible
   if (!this.isPhD) {
     return false;
   }
 
-  // Check publication requirements based on designation
   switch (this.designation) {
     case "Professor":
     case "Associate Professor":
@@ -112,7 +104,6 @@ facultySchema.virtual("isEligibleForSupervision").get(function () {
   }
 });
 
-// Virtual field for supervision capacity status
 facultySchema.virtual("supervisionCapacityStatus").get(function () {
   const currentLoad = this.totalSupervisionLoad || 0;
   const maxLoad = this.maxScholars;
@@ -142,7 +133,6 @@ facultySchema.virtual("supervisionCapacityStatus").get(function () {
   }
 });
 
-// Virtual field for eligibility reason
 facultySchema.virtual("eligibilityReason").get(function () {
   if (!this.isPhD) {
     return "PhD required for supervision";
@@ -163,7 +153,6 @@ facultySchema.virtual("eligibilityReason").get(function () {
   }
 });
 
-// Instance method to get supervision eligibility
 facultySchema.methods.getSupervisionEligibility = function () {
   return {
     isEligible: this.isEligibleForSupervision,
@@ -171,13 +160,11 @@ facultySchema.methods.getSupervisionEligibility = function () {
   };
 };
 
-// Instance method to check if can accept more scholars
 facultySchema.methods.canAcceptMoreScholars = function () {
   const capacityStatus = this.supervisionCapacityStatus;
   return capacityStatus.canAcceptMore && this.isEligibleForSupervision;
 };
 
-// Instance method to get supervision load summary
 facultySchema.methods.getSupervisionLoadSummary = function () {
   return {
     currentLoad: this.totalSupervisionLoad || 0,
@@ -189,9 +176,7 @@ facultySchema.methods.getSupervisionLoadSummary = function () {
   };
 };
 
-// Pre-save middleware to ensure virtual fields are computed
 facultySchema.pre("save", function (next) {
-  // This ensures virtual fields are computed
   this.isEligibleForSupervision;
   this.eligibilityReason;
   this.supervisionCapacityStatus;

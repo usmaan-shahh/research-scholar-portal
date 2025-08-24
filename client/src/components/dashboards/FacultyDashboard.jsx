@@ -7,9 +7,7 @@ import {
   FaChartLine,
   FaCalendarAlt,
   FaSearch,
-  FaFilter,
 } from "react-icons/fa";
-import { toast } from "react-toastify";
 import { useGetScholarsQuery } from "../../apiSlices/scholarApi";
 import FacultyScholarCard from "./FacultyScholarCard";
 import FacultySupervisionStats from "./FacultySupervisionStats";
@@ -28,12 +26,10 @@ const FacultyDashboard = () => {
 
   const { user } = useSelector((state) => state.auth);
 
-  // Verify user has correct role for Faculty Dashboard
   const hasCorrectRole = useMemo(() => {
     return user?.role === "supervisor";
   }, [user?.role]);
 
-  // Get scholars supervised by this faculty member
   const {
     data: scholars = [],
     isLoading: scholarsLoading,
@@ -43,11 +39,9 @@ const FacultyDashboard = () => {
     hasCorrectRole ? { supervisor: user?._id } : undefined
   );
 
-  // Filter and sort scholars
   const filteredAndSortedScholars = useMemo(() => {
     let filtered = scholars;
 
-    // Apply search filter
     if (searchTerm) {
       filtered = filtered.filter(
         (scholar) =>
@@ -57,7 +51,6 @@ const FacultyDashboard = () => {
       );
     }
 
-    // Apply status filter
     if (statusFilter !== "all") {
       filtered = filtered.filter((scholar) => {
         if (statusFilter === "active") return scholar.isActive;
@@ -68,7 +61,6 @@ const FacultyDashboard = () => {
       });
     }
 
-    // Apply sorting
     filtered.sort((a, b) => {
       switch (sortBy) {
         case "name":
@@ -87,7 +79,6 @@ const FacultyDashboard = () => {
     return filtered;
   }, [scholars, searchTerm, statusFilter, sortBy]);
 
-  // Calculate supervision statistics
   const supervisionStats = useMemo(() => {
     const total = scholars.length;
     const active = scholars.filter((s) => s.isActive).length;
@@ -125,7 +116,6 @@ const FacultyDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
-      {/* Header */}
       <div className="max-w-7xl mx-auto mb-8">
         <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -159,7 +149,6 @@ const FacultyDashboard = () => {
         </div>
       </div>
 
-      {/* Stats Cards */}
       <div className="max-w-7xl mx-auto mb-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="bg-white rounded-lg shadow p-6">
@@ -228,7 +217,6 @@ const FacultyDashboard = () => {
         </div>
       </div>
 
-      {/* Tabs */}
       <div className="max-w-7xl mx-auto mb-8">
         <div className="flex gap-0 border-b border-gray-200">
           {Object.values(TABS).map((tab) => (
@@ -247,7 +235,6 @@ const FacultyDashboard = () => {
         </div>
       </div>
 
-      {/* Tab Content */}
       <div className="max-w-7xl mx-auto">
         {activeTab === TABS.SUPERVISION && (
           <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8">
@@ -256,7 +243,6 @@ const FacultyDashboard = () => {
                 My Supervised Scholars
               </h2>
               <div className="flex flex-col sm:flex-row gap-3">
-                {/* Search */}
                 <div className="relative">
                   <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <input
@@ -268,7 +254,6 @@ const FacultyDashboard = () => {
                   />
                 </div>
 
-                {/* Status Filter */}
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
@@ -281,7 +266,6 @@ const FacultyDashboard = () => {
                   <option value="without-synopsis">Without Synopsis</option>
                 </select>
 
-                {/* Sort By */}
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
@@ -295,7 +279,6 @@ const FacultyDashboard = () => {
               </div>
             </div>
 
-            {/* Scholars Grid */}
             {scholarsLoading ? (
               <div className="flex justify-center items-center py-12">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -331,7 +314,6 @@ const FacultyDashboard = () => {
               </div>
             )}
 
-            {/* Results Summary */}
             {filteredAndSortedScholars.length > 0 && (
               <div className="mt-6 pt-6 border-t border-gray-200">
                 <p className="text-sm text-gray-600 text-center">

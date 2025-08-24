@@ -31,7 +31,6 @@ export const store = configureStore({
     ),
 });
 
-// Enable listener behavior for the store
 setupListeners(store.dispatch);
 
 export default store;

@@ -20,7 +20,6 @@ dotenv.config();
 
 const app = express();
 
-// Create uploads directory if it doesn't exist
 const uploadsDir = path.join(__dirname, "uploads");
 const minutesDir = path.join(uploadsDir, "minutes");
 
@@ -31,7 +30,6 @@ if (!fs.existsSync(minutesDir)) {
   fs.mkdirSync(minutesDir, { recursive: true });
 }
 
-// Middleware
 app.use(express.json());
 app.use(cookieParser());
 app.use(
@@ -43,10 +41,8 @@ app.use(
   })
 );
 
-// Serve uploaded files
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/departments", departmentRoutes);
@@ -54,16 +50,13 @@ app.use("/api/faculties", facultyRoutes);
 app.use("/api/scholars", scholarRoutes);
 app.use("/api/drc-meetings", drcMeetingRoutes);
 
-// Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ message: "Something went wrong!" });
 });
 
-// Connect to MongoDB
 connectDB();
 
-// Start server
 const PORT = 5000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

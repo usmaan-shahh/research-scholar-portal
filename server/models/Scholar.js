@@ -2,7 +2,6 @@ import mongoose from "mongoose";
 
 const scholarSchema = new mongoose.Schema(
   {
-    // Personal Details
     name: {
       type: String,
       required: true,
@@ -67,8 +66,6 @@ const scholarSchema = new mongoose.Schema(
       type: Date,
       required: true,
     },
-
-    // Research Profile
     areaOfResearch: {
       type: String,
       required: true,
@@ -89,8 +86,6 @@ const scholarSchema = new mongoose.Schema(
       ref: "Faculty",
       required: false,
     },
-
-    // Department and Status
     departmentCode: {
       type: String,
       required: true,
@@ -104,8 +99,6 @@ const scholarSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Index for better query performance
 scholarSchema.index({ departmentCode: 1, isActive: 1 });
-// Note: rollNo, regId, and email indexes are automatically created by unique: true constraint
 
 export default mongoose.model("Scholar", scholarSchema);
