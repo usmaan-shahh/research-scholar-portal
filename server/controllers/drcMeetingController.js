@@ -92,12 +92,10 @@ export const createMeeting = async (req, res) => {
       });
 
       if (validAttendees.length !== attendees.length) {
-        return res
-          .status(400)
-          .json({
-            message:
-              "Some attendees are invalid or not in the specified department",
-          });
+        return res.status(400).json({
+          message:
+            "Some attendees are invalid or not in the specified department",
+        });
       }
     }
 
@@ -276,11 +274,9 @@ export const updateMeeting = async (req, res) => {
 
     // Check permissions - only creator or admin can update
     if (!req.user.role === "admin" && !meeting.createdBy.equals(req.user._id)) {
-      return res
-        .status(403)
-        .json({
-          message: "Only the meeting creator or admin can update this meeting",
-        });
+      return res.status(403).json({
+        message: "Only the meeting creator or admin can update this meeting",
+      });
     }
 
     // Check if meeting can be updated
@@ -315,12 +311,10 @@ export const updateMeeting = async (req, res) => {
       });
 
       if (validAttendees.length !== attendees.length) {
-        return res
-          .status(400)
-          .json({
-            message:
-              "Some attendees are invalid or not in the specified department",
-          });
+        return res.status(400).json({
+          message:
+            "Some attendees are invalid or not in the specified department",
+        });
       }
       meeting.attendees = attendees;
     }
@@ -363,11 +357,9 @@ export const deleteMeeting = async (req, res) => {
 
     // Check permissions - only creator or admin can delete
     if (!req.user.role === "admin" && !meeting.createdBy.equals(req.user._id)) {
-      return res
-        .status(403)
-        .json({
-          message: "Only the meeting creator or admin can delete this meeting",
-        });
+      return res.status(403).json({
+        message: "Only the meeting creator or admin can delete this meeting",
+      });
     }
 
     if (permanent === "true") {
