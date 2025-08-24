@@ -70,7 +70,11 @@ const DRCMeetingsDashboard = ({ departmentCode, userRole }) => {
 
   const meetings = meetingsData?.meetings || [];
   const stats = statsData?.summary || {};
-  const canEdit = userRole === "admin" || userRole === "drc_chair" || user?.role === "admin" || user?.role === "drc_chair";
+  const canEdit =
+    userRole === "admin" ||
+    userRole === "drc_chair" ||
+    user?.role === "admin" ||
+    user?.role === "drc_chair";
 
   const filteredMeetings = useMemo(() => {
     if (!meetings.length) return [];
@@ -112,7 +116,15 @@ const DRCMeetingsDashboard = ({ departmentCode, userRole }) => {
 
   const handleUpdateMeeting = async (meetingData) => {
     try {
-      await updateMeeting(meetingData).unwrap();
+      // Ensure the meeting ID is included for updates
+      const updateData = {
+        id: editingMeeting._id,
+        ...meetingData,
+      };
+
+      console.log("Updating meeting with data:", updateData);
+
+      await updateMeeting(updateData).unwrap();
       setEditingMeeting(null);
       toast.success("Meeting updated successfully!");
       refetch();
@@ -121,10 +133,10 @@ const DRCMeetingsDashboard = ({ departmentCode, userRole }) => {
     }
   };
 
-  const handleDeleteMeeting = async (meetingId) => {
+  const handleDeleteMeeting = async (meetingId, permanent = false) => {
     if (window.confirm("Are you sure you want to delete this meeting?")) {
       try {
-        await deleteMeeting(meetingId).unwrap();
+        await deleteMeeting({ id: meetingId, permanent }).unwrap();
         toast.success("Meeting deleted successfully!");
         refetch();
       } catch (error) {
@@ -135,9 +147,7 @@ const DRCMeetingsDashboard = ({ departmentCode, userRole }) => {
 
   const handleUploadMinutes = async (meetingId, file) => {
     try {
-      const formData = new FormData();
-      formData.append("minutes", file);
-      await uploadMinutes({ meetingId, formData }).unwrap();
+      await uploadMinutes({ id: meetingId, minutesFile: file }).unwrap();
       toast.success("Minutes uploaded successfully!");
       refetch();
     } catch (error) {
@@ -221,7 +231,9 @@ const DRCMeetingsDashboard = ({ departmentCode, userRole }) => {
               <HiCalendar className="text-blue-600 text-xl" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Meetings</p>
+              <p className="text-sm font-medium text-gray-600">
+                Total Meetings
+              </p>
               <p className="text-2xl font-bold text-gray-900">
                 {stats.totalMeetings || 0}
               </p>
@@ -346,7 +358,9 @@ const DRCMeetingsDashboard = ({ departmentCode, userRole }) => {
 
             <select
               value={filters.meetingType}
-              onChange={(e) => handleFilterChange("meetingType", e.target.value)}
+              onChange={(e) =>
+                handleFilterChange("meetingType", e.target.value)
+              }
               className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="">All Types</option>
@@ -371,7 +385,9 @@ const DRCMeetingsDashboard = ({ departmentCode, userRole }) => {
             <div className="text-center py-12 text-red-500">
               <p className="text-lg font-semibold">Error loading meetings</p>
               <p className="text-sm">
-                {error.data?.message || error.message || "Failed to load meetings"}
+                {error.data?.message ||
+                  error.message ||
+                  "Failed to load meetings"}
               </p>
             </div>
           ) : filteredMeetings.length === 0 ? (
@@ -390,10 +406,18 @@ const DRCMeetingsDashboard = ({ departmentCode, userRole }) => {
                 <MeetingCard
                   key={meeting._id}
                   meeting={meeting}
-                  onView={() => handleViewDetails(meeting)}
+                  onViewDetails={() => handleViewDetails(meeting)}
                   onEdit={canEdit ? () => handleEdit(meeting) : undefined}
-                  onDelete={canEdit ? () => handleDeleteMeeting(meeting._id) : undefined}
-                  onUploadMinutes={canEdit ? (file) => handleUploadMinutes(meeting._id, file) : undefined}
+                  onDelete={
+                    canEdit
+                      ? (meetingId) => handleDeleteMeeting(meetingId)
+                      : undefined
+                  }
+                  onUploadMinutes={
+                    canEdit
+                      ? (file) => handleUploadMinutes(meeting._id, file)
+                      : undefined
+                  }
                   onDownloadMinutes={() => handleDownloadMinutes(meeting._id)}
                   canEdit={canEdit}
                 />
@@ -422,9 +446,9 @@ const DRCMeetingsDashboard = ({ departmentCode, userRole }) => {
             setEditingMeeting(selectedMeeting);
             setShowForm(true);
           }}
-          onDelete={() => {
+          onDelete={(meetingId) => {
             setShowDetails(false);
-            handleDeleteMeeting(selectedMeeting._id);
+            handleDeleteMeeting(meetingId);
           }}
           canEdit={canEdit}
         />

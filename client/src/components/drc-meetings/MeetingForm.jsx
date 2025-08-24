@@ -96,9 +96,19 @@ const MeetingForm = ({
       return;
     }
 
+    // Clean up attendees array to remove any undefined values
+    const cleanedFormData = {
+      ...formData,
+      attendees: formData.attendees.filter((id) => id && id !== undefined),
+    };
+
+    console.log("Submitting meeting with data:", cleanedFormData);
+    console.log("Original attendees:", formData.attendees);
+    console.log("Cleaned attendees:", cleanedFormData.attendees);
+
     setLoading(true);
     try {
-      await onSubmit(formData);
+      await onSubmit(cleanedFormData);
       toast.success(
         meeting
           ? "Meeting updated successfully!"
@@ -127,6 +137,14 @@ const MeetingForm = ({
   };
 
   const handleAttendeeToggle = (attendeeId) => {
+    // Only proceed if we have a valid attendeeId
+    if (!attendeeId) {
+      console.warn("Attempted to toggle attendee with undefined ID");
+      return;
+    }
+
+    console.log("Toggling attendee with ID:", attendeeId);
+
     setFormData((prev) => ({
       ...prev,
       attendees: prev.attendees.includes(attendeeId)
@@ -137,9 +155,20 @@ const MeetingForm = ({
 
   const getAvailableFaculties = () => {
     if (!formData.departmentCode) return [];
-    return faculties.filter(
+    const filteredFaculties = faculties.filter(
       (f) => f.departmentCode === formData.departmentCode
     );
+
+    // Debug logging to see faculty data structure
+    if (filteredFaculties.length > 0) {
+      console.log(
+        "Available faculties for department:",
+        formData.departmentCode,
+        filteredFaculties
+      );
+    }
+
+    return filteredFaculties;
   };
 
   const availableFaculties = getAvailableFaculties();
@@ -352,13 +381,17 @@ const MeetingForm = ({
                       <input
                         type="checkbox"
                         checked={formData.attendees.includes(
-                          faculty.userId || faculty._id
+                          faculty.userId || faculty.userAccountId?._id
                         )}
                         onChange={() =>
-                          handleAttendeeToggle(faculty.userId || faculty._id)
+                          handleAttendeeToggle(
+                            faculty.userId || faculty.userAccountId?._id
+                          )
                         }
                         className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                        disabled={!faculty.userId}
+                        disabled={
+                          !faculty.userId && !faculty.userAccountId?._id
+                        }
                       />
                       <div>
                         <span className="text-sm font-medium text-gray-900">
@@ -366,7 +399,7 @@ const MeetingForm = ({
                         </span>
                         <p className="text-xs text-gray-500">
                           {faculty.designation}
-                          {!faculty.userId && (
+                          {!faculty.userId && !faculty.userAccountId?._id && (
                             <span className="text-red-500 ml-1">
                               (No user account)
                             </span>

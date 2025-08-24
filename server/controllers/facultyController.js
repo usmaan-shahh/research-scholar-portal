@@ -84,13 +84,13 @@ const createFaculty = async (req, res) => {
     const existing = await Faculty.findOne({ employeeCode });
     if (existing)
       return res.status(400).json({ message: "Employee code already exists" });
-    
+
     const department = await Department.findOne({ code: departmentCode });
     if (!department)
       return res.status(400).json({ message: "Invalid department code" });
-    
+
     const maxScholars = getMaxScholars(designation);
-    
+
     // Create faculty record
     const facultyData = {
       employeeCode,
@@ -106,22 +106,24 @@ const createFaculty = async (req, res) => {
     // If creating user account, validate required fields
     if (createUserAccount) {
       if (!username) {
-        return res.status(400).json({ message: "Username is required for account creation" });
+        return res
+          .status(400)
+          .json({ message: "Username is required for account creation" });
       }
 
       // Check if username already exists in User collection
       const existingUser = await User.findOne({ username });
       if (existingUser) {
-        return res.status(400).json({ 
-          message: "User with this username already exists" 
+        return res.status(400).json({
+          message: "User with this username already exists",
         });
       }
 
       // Check if username already exists in Faculty collection
       const existingFacultyWithAccount = await Faculty.findOne({ username });
       if (existingFacultyWithAccount) {
-        return res.status(400).json({ 
-          message: "Faculty with this username already exists" 
+        return res.status(400).json({
+          message: "Faculty with this username already exists",
         });
       }
 
@@ -135,7 +137,7 @@ const createFaculty = async (req, res) => {
     let userAccount = null;
     if (createUserAccount) {
       const password = tempPassword || generateTempPassword();
-      
+
       userAccount = await User.create({
         name,
         email: `${username}@university.edu`, // Generate email from username
@@ -187,8 +189,8 @@ export const createFacultyAccount = async (req, res) => {
     const { facultyId, username, tempPassword } = req.body;
 
     if (!facultyId || !username) {
-      return res.status(400).json({ 
-        message: "Faculty ID and username are required" 
+      return res.status(400).json({
+        message: "Faculty ID and username are required",
       });
     }
 
@@ -203,28 +205,30 @@ export const createFacultyAccount = async (req, res) => {
       req.user?.role === "main_office" &&
       req.user.departmentCode !== faculty.departmentCode
     ) {
-      return res.status(403).json({ message: "Forbidden: department mismatch" });
+      return res
+        .status(403)
+        .json({ message: "Forbidden: department mismatch" });
     }
 
     // Check if faculty already has a user account
     if (faculty.hasUserAccount) {
-      return res.status(400).json({ 
-        message: "Faculty already has a user account" 
+      return res.status(400).json({
+        message: "Faculty already has a user account",
       });
     }
 
     // Check if username already exists
     const existingUser = await User.findOne({ username });
     if (existingUser) {
-      return res.status(400).json({ 
-        message: "User with this username already exists" 
+      return res.status(400).json({
+        message: "User with this username already exists",
       });
     }
 
     const existingFacultyWithAccount = await Faculty.findOne({ username });
     if (existingFacultyWithAccount) {
-      return res.status(400).json({ 
-        message: "Faculty with this username already exists" 
+      return res.status(400).json({
+        message: "Faculty with this username already exists",
       });
     }
 
@@ -285,7 +289,10 @@ const getFaculties = async (req, res) => {
       filter.departmentCode = req.user.departmentCode;
     }
 
-    let faculties = await Faculty.find(filter);
+    let faculties = await Faculty.find(filter).populate(
+      "userAccountId",
+      "name email role"
+    );
 
     // Apply supervision eligibility filter if specified
     if (supervisionEligibility) {
@@ -308,6 +315,7 @@ const getFaculties = async (req, res) => {
         ...facultyObj,
         isEligibleForSupervision: eligibility.isEligible,
         eligibilityReason: eligibility.reason,
+        userId: faculty.userAccountId?._id, // Add userId for backward compatibility
       };
     });
 
@@ -320,7 +328,10 @@ const getFaculties = async (req, res) => {
 // Get Faculty by ID
 const getFacultyById = async (req, res) => {
   try {
-    const faculty = await Faculty.findById(req.params.id);
+    const faculty = await Faculty.findById(req.params.id).populate(
+      "userAccountId",
+      "name email role"
+    );
     if (!faculty) return res.status(404).json({ message: "Faculty not found" });
 
     if (
@@ -337,6 +348,7 @@ const getFacultyById = async (req, res) => {
       ...facultyObj,
       isEligibleForSupervision: eligibility.isEligible,
       eligibilityReason: eligibility.reason,
+      userId: faculty.userAccountId?._id, // Add userId for backward compatibility
     };
 
     res.json(response);
@@ -387,7 +399,7 @@ const updateFaculty = async (req, res) => {
         isActive,
       },
       { new: true, runValidators: true }
-    );
+    ).populate("userAccountId", "name email role");
     if (!faculty) return res.status(404).json({ message: "Faculty not found" });
 
     // Add computed fields to response
@@ -397,6 +409,7 @@ const updateFaculty = async (req, res) => {
       ...facultyObj,
       isEligibleForSupervision: eligibility.isEligible,
       eligibilityReason: eligibility.reason,
+      userId: faculty.userAccountId?._id, // Add userId for backward compatibility
     };
 
     res.json(response);

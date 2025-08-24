@@ -85,17 +85,33 @@ export const createMeeting = async (req, res) => {
     }
 
     // Validate attendees if provided
+    let validAttendeeIds = [];
     if (attendees && attendees.length > 0) {
-      const validAttendees = await User.find({
-        _id: { $in: attendees },
-        departmentCode: departmentCode,
-      });
+      // Filter out any undefined, null, or invalid attendee IDs
+      validAttendeeIds = attendees.filter(
+        (id) => id && id !== undefined && id !== null
+      );
 
-      if (validAttendees.length !== attendees.length) {
-        return res.status(400).json({
-          message:
-            "Some attendees are invalid or not in the specified department",
+      if (validAttendeeIds.length !== attendees.length) {
+        console.warn(
+          `Filtered out ${
+            attendees.length - validAttendeeIds.length
+          } invalid attendee IDs`
+        );
+      }
+
+      if (validAttendeeIds.length > 0) {
+        const validAttendees = await User.find({
+          _id: { $in: validAttendeeIds },
+          departmentCode: departmentCode,
         });
+
+        if (validAttendees.length !== validAttendeeIds.length) {
+          return res.status(400).json({
+            message:
+              "Some attendees are invalid or not in the specified department",
+          });
+        }
       }
     }
 
@@ -106,7 +122,7 @@ export const createMeeting = async (req, res) => {
       venue,
       time,
       agenda,
-      attendees: attendees || [],
+      attendees: validAttendeeIds || [],
       departmentCode,
       meetingType: meetingType || "Other",
       notes,
@@ -305,18 +321,35 @@ export const updateMeeting = async (req, res) => {
 
     // Validate attendees if provided
     if (attendees && attendees.length > 0) {
-      const validAttendees = await User.find({
-        _id: { $in: attendees },
-        departmentCode: meeting.departmentCode,
-      });
+      // Filter out any undefined, null, or invalid attendee IDs
+      const validAttendeeIds = attendees.filter(
+        (id) => id && id !== undefined && id !== null
+      );
 
-      if (validAttendees.length !== attendees.length) {
-        return res.status(400).json({
-          message:
-            "Some attendees are invalid or not in the specified department",
-        });
+      if (validAttendeeIds.length !== attendees.length) {
+        console.warn(
+          `Filtered out ${
+            attendees.length - validAttendeeIds.length
+          } invalid attendee IDs during update`
+        );
       }
-      meeting.attendees = attendees;
+
+      if (validAttendeeIds.length > 0) {
+        const validAttendees = await User.find({
+          _id: { $in: validAttendeeIds },
+          departmentCode: meeting.departmentCode,
+        });
+
+        if (validAttendees.length !== validAttendeeIds.length) {
+          return res.status(400).json({
+            message:
+              "Some attendees are invalid or not in the specified department",
+          });
+        }
+        meeting.attendees = validAttendeeIds;
+      } else {
+        meeting.attendees = [];
+      }
     }
 
     // Update fields

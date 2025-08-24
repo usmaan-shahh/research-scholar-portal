@@ -245,8 +245,9 @@ export const getFacultyWithSupervisionLoad = async (departmentCode = null) => {
     const faculty = await Faculty.find(filter)
       .populate("currentSupervisionLoad")
       .populate("currentCoSupervisionLoad")
+      .populate("userAccountId", "name email role")
       .select(
-        "name designation departmentCode isPhD maxScholars numberOfPublications"
+        "name designation departmentCode isPhD maxScholars numberOfPublications userAccountId"
       );
 
     return faculty.map((f) => ({
@@ -258,6 +259,8 @@ export const getFacultyWithSupervisionLoad = async (departmentCode = null) => {
       maxScholars: f.maxScholars,
       numberOfPublications: f.numberOfPublications,
       supervisionLoad: f.getSupervisionLoadSummary(),
+      userId: f.userAccountId?._id, // Add userId for backward compatibility
+      hasUserAccount: !!f.userAccountId,
     }));
   } catch (error) {
     console.error("Error getting faculty with supervision load:", error);
