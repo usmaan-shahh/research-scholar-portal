@@ -8,6 +8,10 @@ export const facultyApi = createApi({
   }),
   tagTypes: ["Faculty"],
   endpoints: (builder) => ({
+    getFacultyByUserId: builder.query({
+      query: (userId) => `/user/${userId}`,
+      providesTags: (result, error, userId) => [{ type: "Faculty", id: userId }],
+    }),
     getFaculties: builder.query({
       query: (params) => ({
         url: "/",
@@ -64,6 +68,7 @@ export const facultyApi = createApi({
 });
 
 export const {
+  useGetFacultyByUserIdQuery,
   useGetFacultiesQuery,
   useGetFacultyByIdQuery,
   useGetFacultyWithSupervisionLoadQuery,

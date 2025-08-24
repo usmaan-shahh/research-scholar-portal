@@ -40,4 +40,7 @@ router.get("/:id", facultyController.getFacultyById);
 router.put("/:id", facultyController.updateFaculty);
 router.delete("/:id", facultyController.deleteFaculty);
 
+// Get faculty by user ID
+router.get("/user/:userId", facultyController.getFacultyByUserId);
+
 export default router;

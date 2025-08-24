@@ -439,6 +439,36 @@ const deleteFaculty = async (req, res) => {
   }
 };
 
+// Get faculty by user ID
+export const getFacultyByUserId = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    if (!userId) {
+      return res.status(400).json({ message: "User ID is required" });
+    }
+
+    const faculty = await Faculty.findOne({ userAccountId: userId })
+      .populate("userAccountId", "name email role departmentCode")
+      .select("-__v");
+
+    if (!faculty) {
+      return res.status(404).json({ message: "Faculty not found for this user" });
+    }
+
+    // Add supervision load information
+    const supervisionLoad = await faculty.getSupervisionLoadSummary();
+
+    res.json({
+      ...faculty.toObject(),
+      supervisionLoad,
+    });
+  } catch (err) {
+    console.error("Error getting faculty by user ID:", err);
+    res.status(500).json({ message: err.message });
+  }
+};
+
 export default {
   createFaculty,
   getFaculties,
@@ -446,4 +476,5 @@ export default {
   updateFaculty,
   deleteFaculty,
   createFacultyAccount,
+  getFacultyByUserId,
 };

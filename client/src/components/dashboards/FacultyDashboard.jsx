@@ -11,6 +11,7 @@ import {
 } from "react-icons/fa";
 import { toast } from "react-toastify";
 import { useGetScholarsQuery } from "../../apiSlices/scholarApi";
+import { useGetFacultyByUserIdQuery } from "../../apiSlices/facultyApi";
 import FacultyScholarCard from "./FacultyScholarCard";
 import FacultySupervisionStats from "./FacultySupervisionStats";
 
@@ -33,6 +34,15 @@ const FacultyDashboard = () => {
     return user?.role === "supervisor";
   }, [user?.role]);
 
+  // Get faculty record for the logged-in user
+  const {
+    data: facultyData,
+    isLoading: facultyLoading,
+    error: facultyError,
+  } = useGetFacultyByUserIdQuery(user?._id, {
+    skip: !hasCorrectRole || !user?._id,
+  });
+
   // Get scholars supervised by this faculty member
   const {
     data: scholars = [],
@@ -40,7 +50,12 @@ const FacultyDashboard = () => {
     error: scholarsError,
     refetch: refetchScholars,
   } = useGetScholarsQuery(
-    hasCorrectRole ? { supervisor: user?._id } : undefined
+    hasCorrectRole && facultyData?._id
+      ? { supervisor: facultyData._id }
+      : undefined,
+    {
+      skip: !hasCorrectRole || !facultyData?._id,
+    }
   );
 
   // Filter and sort scholars
@@ -68,8 +83,11 @@ const FacultyDashboard = () => {
       });
     }
 
+    // Create a copy of the filtered array before sorting to avoid mutating the original
+    const sortedFiltered = [...filtered];
+
     // Apply sorting
-    filtered.sort((a, b) => {
+    sortedFiltered.sort((a, b) => {
       switch (sortBy) {
         case "name":
           return (a.name || "").localeCompare(b.name || "");
@@ -84,7 +102,7 @@ const FacultyDashboard = () => {
       }
     });
 
-    return filtered;
+    return sortedFiltered;
   }, [scholars, searchTerm, statusFilter, sortBy]);
 
   // Calculate supervision statistics
@@ -123,6 +141,59 @@ const FacultyDashboard = () => {
     );
   }
 
+  // Show loading state while fetching faculty data
+  if (facultyLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading faculty information...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state if faculty data failed to load
+  if (facultyError) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-red-600 mb-4">
+            Error Loading Faculty Data
+          </h1>
+          <p className="text-gray-600 mb-4">
+            {facultyError.data?.message ||
+              facultyError.message ||
+              "Failed to load faculty information"}
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Show message if no faculty record found
+  if (!facultyData) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-red-600 mb-4">
+            Faculty Record Not Found
+          </h1>
+          <p className="text-gray-600">
+            No faculty record found for your user account. Please contact the
+            administrator.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
       {/* Header */}
@@ -135,15 +206,19 @@ const FacultyDashboard = () => {
               </h1>
               <p className="text-gray-600">
                 Welcome back,{" "}
-                <span className="font-semibold">{user?.name}</span>
+                <span className="font-semibold">{facultyData.name}</span>
               </p>
               <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
                 <span className="flex items-center gap-1">
                   <FaUniversity className="w-4 h-4" />
-                  {user?.department || user?.departmentCode}
+                  {facultyData.departmentCode}
                 </span>
                 <span className="flex items-center gap-1">
                   <FaUserTie className="w-4 h-4" />
+                  {facultyData.designation}
+                </span>
+                <span className="flex items-center gap-1">
+                  <FaUserGraduate className="w-4 h-4" />
                   {user?.role}
                 </span>
               </div>
@@ -366,28 +441,30 @@ const FacultyDashboard = () => {
                   <label className="block text-sm font-medium text-gray-700">
                     Name
                   </label>
-                  <p className="text-lg text-gray-900">{user?.name}</p>
+                  <p className="text-lg text-gray-900">{facultyData.name}</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
-                    Username
+                    Employee Code
                   </label>
-                  <p className="text-lg text-gray-900">{user?.username}</p>
+                  <p className="text-lg text-gray-900">
+                    {facultyData.employeeCode}
+                  </p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
                     Department
                   </label>
                   <p className="text-lg text-gray-900">
-                    {user?.department || user?.departmentCode}
+                    {facultyData.departmentCode}
                   </p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
-                    Role
+                    Designation
                   </label>
                   <p className="text-lg text-gray-900 capitalize">
-                    {user?.role}
+                    {facultyData.designation}
                   </p>
                 </div>
               </div>
@@ -397,7 +474,7 @@ const FacultyDashboard = () => {
                     Supervision Capacity
                   </label>
                   <p className="text-lg text-gray-900">
-                    {scholars.length} / Unlimited
+                    {scholars.length} / {facultyData.maxScholars}
                   </p>
                 </div>
                 <div>
@@ -410,9 +487,23 @@ const FacultyDashboard = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
-                    Account Status
+                    PhD Status
                   </label>
-                  <p className="text-lg text-green-600 font-semibold">Active</p>
+                  <p
+                    className={`text-lg font-semibold ${
+                      facultyData.isPhD ? "text-green-600" : "text-red-600"
+                    }`}
+                  >
+                    {facultyData.isPhD ? "PhD Holder" : "No PhD"}
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Publications
+                  </label>
+                  <p className="text-lg text-gray-900">
+                    {facultyData.numberOfPublications}
+                  </p>
                 </div>
               </div>
             </div>
