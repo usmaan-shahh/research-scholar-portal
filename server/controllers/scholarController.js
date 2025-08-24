@@ -454,7 +454,7 @@ export const updateScholar = async (req, res) => {
 // Delete Scholar (soft delete by default, permanent delete if specified)
 export const deleteScholar = async (req, res) => {
   try {
-    const { permanent } = req.query;
+    const { permanent, reactivate } = req.query;
     const scholar = await Scholar.findById(req.params.id);
 
     if (!scholar) {
@@ -469,7 +469,23 @@ export const deleteScholar = async (req, res) => {
       return res.status(403).json({ message: "Forbidden" });
     }
 
-    if (permanent === "true") {
+    if (reactivate === "true") {
+      // Reactivate scholar
+      if (scholar.isActive) {
+        return res.status(400).json({ message: "Scholar is already active" });
+      }
+
+      scholar.isActive = true;
+      await scholar.save();
+
+      // Refresh faculty supervision data after reactivation
+      const facultyIdsToRefresh = [];
+      if (scholar.supervisor) facultyIdsToRefresh.push(scholar.supervisor);
+      if (scholar.coSupervisor) facultyIdsToRefresh.push(scholar.coSupervisor);
+      await refreshFacultySupervisionData(facultyIdsToRefresh);
+
+      res.json({ message: "Scholar reactivated successfully" });
+    } else if (permanent === "true") {
       // Permanent delete
       await Scholar.findByIdAndDelete(req.params.id);
 
@@ -482,6 +498,10 @@ export const deleteScholar = async (req, res) => {
       res.json({ message: "Scholar permanently deleted" });
     } else {
       // Soft delete (mark as inactive)
+      if (!scholar.isActive) {
+        return res.status(400).json({ message: "Scholar is already inactive" });
+      }
+
       scholar.isActive = false;
       await scholar.save();
 

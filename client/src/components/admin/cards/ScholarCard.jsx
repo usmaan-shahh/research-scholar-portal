@@ -30,17 +30,44 @@ const ScholarCard = ({
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-200 overflow-hidden">
+    <div
+      className={`bg-white rounded-xl shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-200 overflow-hidden ${
+        !scholar.isActive ? "opacity-60 grayscale" : ""
+      }`}
+    >
+      {/* Inactive Banner */}
+      {!scholar.isActive && (
+        <div className="bg-red-500 text-white text-center py-2 px-4 font-semibold text-sm">
+          ⚠️ SCHOLAR IS INACTIVE - NO MODIFICATIONS ALLOWED
+        </div>
+      )}
+
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-500 to-cyan-500 p-4 text-white">
+      <div
+        className={`p-4 text-white ${
+          !scholar.isActive
+            ? "bg-gradient-to-r from-gray-500 to-gray-600"
+            : "bg-gradient-to-r from-blue-500 to-cyan-500"
+        }`}
+      >
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+            <div
+              className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                !scholar.isActive ? "bg-gray-400/20" : "bg-white/20"
+              }`}
+            >
               <HiAcademicCap className="w-6 h-6" />
             </div>
             <div>
               <h3 className="font-bold text-lg">{scholar.name}</h3>
-              <p className="text-blue-100 text-sm">{scholar.rollNo}</p>
+              <p
+                className={`text-sm ${
+                  !scholar.isActive ? "text-gray-200" : "text-blue-100"
+                }`}
+              >
+                {scholar.rollNo}
+              </p>
             </div>
           </div>
           <div className="flex flex-col items-end space-y-2">
@@ -74,6 +101,29 @@ const ScholarCard = ({
 
       {/* Content */}
       <div className="p-4 space-y-3">
+        {/* Inactive Status Notice */}
+        {!scholar.isActive && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+            <div className="flex items-center gap-2 text-red-700">
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  fillRule="evenodd"
+                  d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              <span className="font-medium text-sm">
+                This scholar is currently inactive
+              </span>
+            </div>
+            <p className="text-xs text-red-600 mt-1">
+              Inactive scholars cannot be edited, assigned supervisors, or
+              modified in any way. Contact an administrator to reactivate if
+              needed.
+            </p>
+          </div>
+        )}
+
         {/* Basic Info */}
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
@@ -218,11 +268,21 @@ const ScholarCard = ({
             <div className="pt-2">
               <button
                 onClick={() => onSupervisorAssignment(scholar)}
+                disabled={!scholar.isActive}
                 className={`w-full px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  scholar.supervisor
+                  !scholar.isActive
+                    ? "bg-gray-400 text-white cursor-not-allowed opacity-50"
+                    : scholar.supervisor
                     ? "bg-blue-600 text-white hover:bg-blue-700"
                     : "bg-yellow-600 text-white hover:bg-yellow-700"
                 }`}
+                title={
+                  !scholar.isActive
+                    ? "Scholar is inactive - cannot modify assignments"
+                    : scholar.supervisor
+                    ? "Change Supervisor"
+                    : "Assign Supervisor"
+                }
               >
                 {scholar.supervisor ? "Change Supervisor" : "Assign Supervisor"}
               </button>
@@ -262,13 +322,20 @@ const ScholarCard = ({
             {userRole === "drc_chair" && onSupervisorAssignment && (
               <button
                 onClick={() => onSupervisorAssignment(scholar)}
+                disabled={!scholar.isActive}
                 className={`p-2 rounded-lg transition-colors ${
-                  scholar.supervisor
+                  !scholar.isActive
+                    ? "text-gray-400 cursor-not-allowed"
+                    : scholar.supervisor
                     ? "text-green-600 hover:bg-green-50"
                     : "text-yellow-600 hover:bg-yellow-50"
                 }`}
                 title={
-                  scholar.supervisor ? "Change Supervisor" : "Assign Supervisor"
+                  !scholar.isActive
+                    ? "Scholar is inactive - cannot modify assignments"
+                    : scholar.supervisor
+                    ? "Change Supervisor"
+                    : "Assign Supervisor"
                 }
               >
                 <svg
@@ -289,15 +356,33 @@ const ScholarCard = ({
 
             <button
               onClick={() => onEdit(scholar)}
-              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-              title="Edit Scholar"
+              disabled={!scholar.isActive}
+              className={`p-2 rounded-lg transition-colors ${
+                !scholar.isActive
+                  ? "text-gray-400 cursor-not-allowed"
+                  : "text-blue-600 hover:bg-blue-50"
+              }`}
+              title={
+                !scholar.isActive
+                  ? "Scholar is inactive - cannot edit"
+                  : "Edit Scholar"
+              }
             >
               <HiPencil className="w-4 h-4" />
             </button>
             <button
               onClick={() => onDelete(scholar._id, false)}
-              className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
-              title="Deactivate Scholar"
+              disabled={!scholar.isActive}
+              className={`p-2 rounded-lg transition-colors ${
+                !scholar.isActive
+                  ? "text-gray-400 cursor-not-allowed"
+                  : "text-orange-600 hover:bg-orange-50"
+              }`}
+              title={
+                !scholar.isActive
+                  ? "Scholar is already inactive"
+                  : "Deactivate Scholar"
+              }
             >
               <svg
                 className="w-4 h-4"
@@ -313,6 +398,29 @@ const ScholarCard = ({
                 />
               </svg>
             </button>
+
+            {/* Reactivation Button for Inactive Scholars (Admin Only) */}
+            {!scholar.isActive && userRole === "admin" && (
+              <button
+                onClick={() => onDelete(scholar._id, "reactivate")}
+                className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                title="Reactivate Scholar"
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                  />
+                </svg>
+              </button>
+            )}
           </div>
         </div>
       </div>

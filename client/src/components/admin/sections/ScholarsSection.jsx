@@ -353,6 +353,15 @@ const ScholarsSection = React.memo(
               <option value="false">Inactive</option>
             </select>
 
+            {/* Help text for inactive status */}
+            {scholarFilters.isActive === "false" && (
+              <div className="col-span-full md:col-span-1 text-xs text-gray-600 bg-gray-50 p-2 rounded border">
+                <strong>Inactive scholars:</strong> Cannot be edited, assigned
+                supervisors, or modified. They are read-only and excluded from
+                active operations.
+              </div>
+            )}
+
             {/* Supervisor Assignment Status Filter */}
             {showSupervisorAssignments && (
               <select
@@ -394,6 +403,26 @@ const ScholarsSection = React.memo(
           </div>
         )}
 
+        {/* Clear All Filters Button */}
+        {!hideFilters && (
+          <div className="mb-4 flex justify-end">
+            <button
+              onClick={() =>
+                setScholarFilters({
+                  departmentCode: lockedDepartmentCode || "",
+                  isActive: "",
+                  supervisor: "",
+                  supervisorAssignment: "",
+                  search: "",
+                })
+              }
+              className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              Clear All Filters
+            </button>
+          </div>
+        )}
+
         {/* Supervisor Assignments Summary */}
         {showSupervisorAssignments && (
           <div className="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200">
@@ -412,6 +441,9 @@ const ScholarsSection = React.memo(
                 <span className="px-3 py-1 bg-yellow-100 text-yellow-800 text-sm rounded-full">
                   Pending:{" "}
                   {filteredScholars.filter((s) => !s.supervisor).length}
+                </span>
+                <span className="px-3 py-1 bg-red-100 text-red-800 text-sm rounded-full">
+                  Inactive: {filteredScholars.filter((s) => !s.isActive).length}
                 </span>
               </div>
             </div>
@@ -458,6 +490,46 @@ const ScholarsSection = React.memo(
                 )}
               </div>
             )}
+          </div>
+        )}
+
+        {/* Scholars Summary */}
+        {!hideFilters && (
+          <div className="mb-6 bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-lg font-semibold text-gray-800">
+                Scholars Summary
+              </h3>
+              <span className="text-sm text-gray-500">
+                Showing {filteredScholars.length} of {scholars.length} total
+              </span>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-blue-600">
+                  {filteredScholars.filter((s) => s.isActive).length}
+                </div>
+                <div className="text-sm text-gray-600">Active</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-red-600">
+                  {filteredScholars.filter((s) => !s.isActive).length}
+                </div>
+                <div className="text-sm text-gray-600">Inactive</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-green-600">
+                  {filteredScholars.filter((s) => s.supervisor).length}
+                </div>
+                <div className="text-sm text-gray-600">With Supervisor</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-yellow-600">
+                  {filteredScholars.filter((s) => !s.supervisor).length}
+                </div>
+                <div className="text-sm text-gray-600">Pending Assignment</div>
+              </div>
+            </div>
           </div>
         )}
 
