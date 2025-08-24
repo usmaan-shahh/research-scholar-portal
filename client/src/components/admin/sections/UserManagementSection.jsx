@@ -284,7 +284,7 @@ const UserManagementSection = () => {
 
         <div className="p-6">
           <form onSubmit={handleCreate} className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-1">
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   <FaUniversity className="inline mr-2 text-blue-600" />
@@ -342,26 +342,27 @@ const UserManagementSection = () => {
                   </button>
                 </div>
               </div>
+            </div>
 
-              <div className="lg:col-span-1">
-                <button
-                  type="submit"
-                  disabled={creating || !selectedDeptCode}
-                  className="w-auto bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold shadow-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2"
-                >
-                  {creating ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      Creating...
-                    </>
-                  ) : (
-                    <>
-                      <FaUserPlus />
-                      Create User
-                    </>
-                  )}
-                </button>
-              </div>
+            {/* Centered Create Button */}
+            <div className="flex justify-center">
+              <button
+                type="submit"
+                disabled={creating || !selectedDeptCode}
+                className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold shadow-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2"
+              >
+                {creating ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Creating...
+                  </>
+                ) : (
+                  <>
+                    <FaUserPlus />
+                    Create User
+                  </>
+                )}
+              </button>
             </div>
           </form>
         </div>
@@ -387,7 +388,7 @@ const UserManagementSection = () => {
 
         <div className="p-6">
           <form onSubmit={handleCreateDRC} className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-1">
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   <FaUniversity className="inline mr-2 text-purple-600" />
@@ -445,26 +446,27 @@ const UserManagementSection = () => {
                   </button>
                 </div>
               </div>
+            </div>
 
-              <div className="lg:col-span-1">
-                <button
-                  type="submit"
-                  disabled={creatingDRC || !selectedDRCDeptCode}
-                  className="w-full bg-purple-600 text-white px-6 py-3 rounded-lg font-semibold shadow-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2"
-                >
-                  {creatingDRC ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      Creating...
-                    </>
-                  ) : (
-                    <>
-                      <FaUserPlus />
-                      Create DRC Chair
-                    </>
-                  )}
-                </button>
-              </div>
+            {/* Centered Create DRC Chair Button */}
+            <div className="flex justify-center">
+              <button
+                type="submit"
+                disabled={creatingDRC || !selectedDRCDeptCode}
+                className="bg-purple-600 text-white px-8 py-3 rounded-lg font-semibold shadow-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2"
+              >
+                {creatingDRC ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Creating...
+                  </>
+                ) : (
+                  <>
+                    <FaUserPlus />
+                    Create DRC Chair
+                  </>
+                )}
+              </button>
             </div>
           </form>
         </div>

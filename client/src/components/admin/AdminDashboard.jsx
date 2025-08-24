@@ -43,7 +43,7 @@ const AdminDashboard = () => {
       </div>
 
       {/* Tab Content */}
-      <div className="max-w-5xl mx-auto">
+      <div className="w-[90%] mx-auto">
         {activeTab === TABS.DEPARTMENTS && <DepartmentSection />}
         {activeTab === TABS.USERS && <UserManagementSection />}
       </div>
