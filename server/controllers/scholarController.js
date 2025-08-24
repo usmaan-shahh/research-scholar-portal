@@ -323,7 +323,7 @@ export const getScholars = async (req, res) => {
         });
       }
     }
-    
+
     // For supervisor role, also apply department filtering if they have a department
     if (req.user?.role === "supervisor" && req.user?.departmentCode) {
       if (!departmentCode) {
@@ -358,16 +358,21 @@ export const getScholars = async (req, res) => {
         coSupervisor: s.coSupervisor,
       }))
     );
-    
+
     // Debug: Let's also see ALL scholars to understand the data
-    const allScholars = await Scholar.find({}).populate("supervisor", "name designation").populate("coSupervisor", "name designation");
-    console.log("All scholars in database:", allScholars.map(s => ({ 
-      id: s._id, 
-      name: s.name, 
-      supervisor: s.supervisor?._id || s.supervisor, 
-      coSupervisor: s.coSupervisor?._id || s.coSupervisor,
-      department: s.departmentCode 
-    })));
+    const allScholars = await Scholar.find({})
+      .populate("supervisor", "name designation")
+      .populate("coSupervisor", "name designation");
+    console.log(
+      "All scholars in database:",
+      allScholars.map((s) => ({
+        id: s._id,
+        name: s.name,
+        supervisor: s.supervisor?._id || s.supervisor,
+        coSupervisor: s.coSupervisor?._id || s.coSupervisor,
+        department: s.departmentCode,
+      }))
+    );
 
     res.json(scholars);
   } catch (err) {

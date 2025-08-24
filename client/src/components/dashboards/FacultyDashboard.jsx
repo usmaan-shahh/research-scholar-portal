@@ -4,7 +4,6 @@ import {
   FaUserGraduate,
   FaUserTie,
   FaUniversity,
-  FaChartLine,
   FaCalendarAlt,
   FaSearch,
   FaFilter,
@@ -13,11 +12,9 @@ import { toast } from "react-toastify";
 import { useGetScholarsQuery } from "../../apiSlices/scholarApi";
 import { useGetFacultyByUserIdQuery } from "../../apiSlices/facultyApi";
 import FacultyScholarCard from "./FacultyScholarCard";
-import FacultySupervisionStats from "./FacultySupervisionStats";
 
 const TABS = {
   SUPERVISION: "Supervision",
-  STATISTICS: "Statistics",
   PROFILE: "Profile",
 };
 
@@ -273,23 +270,7 @@ const FacultyDashboard = () => {
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center">
               <div className="p-3 bg-purple-100 rounded-full">
-                <FaChartLine className="text-purple-600 text-xl" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">
-                  With Synopsis
-                </p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {supervisionStats.withSynopsis}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-3 bg-orange-100 rounded-full">
-                <FaCalendarAlt className="text-orange-600 text-xl" />
+                <FaCalendarAlt className="text-purple-600 text-xl" />
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">
@@ -421,13 +402,6 @@ const FacultyDashboard = () => {
               </div>
             )}
           </div>
-        )}
-
-        {activeTab === TABS.STATISTICS && (
-          <FacultySupervisionStats
-            scholars={scholars}
-            supervisionStats={supervisionStats}
-          />
         )}
 
         {activeTab === TABS.PROFILE && (
