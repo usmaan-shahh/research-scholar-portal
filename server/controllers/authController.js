@@ -11,11 +11,13 @@ const generateToken = (userId) => {
 export const register = async (req, res) => {
   const { name, email, password, role, department } = req.body;
   try {
+    // Check if user exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: "User already exists" });
     }
 
+    // Create user
     const user = new User({
       name,
       email,
@@ -24,16 +26,21 @@ export const register = async (req, res) => {
       department,
     });
 
+    // Save user
     const savedUser = await user.save();
+
+    // Generate token
     const token = generateToken(savedUser._id);
 
+    // Set cookie
     res.cookie("jwt", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      maxAge: 30 * 24 * 60 * 60 * 1000,
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
     });
 
+    // Send response
     res.status(201).json({
       _id: savedUser._id,
       name: savedUser.name,
@@ -54,15 +61,16 @@ export const register = async (req, res) => {
 
 export const login = async (req, res) => {
   try {
-    const { identifier, password } = req.body;
+    const { email, username, identifier, password } = req.body;
 
-    const id = (identifier || "").toLowerCase();
+    const id = (identifier || username || email || "").toLowerCase();
     if (!id || !password) {
       return res
         .status(400)
         .json({ message: "Identifier and password are required" });
     }
 
+    // Find user by username or email
     const user = await User.findOne({
       $or: [{ email: id }, { username: id }],
     });
@@ -70,20 +78,24 @@ export const login = async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
+    // Check password
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
+    // Generate token
     const token = generateToken(user._id);
 
+    // Set cookie
     res.cookie("jwt", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      maxAge: 30 * 24 * 60 * 60 * 1000,
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
     });
 
+    // Send response
     res.json({
       _id: user._id,
       name: user.name,
@@ -121,6 +133,7 @@ export const changePassword = async (req, res) => {
     const isMatch = await user.comparePassword(currentPassword);
     if (!isMatch) return res.status(400).json({ message: "Invalid password" });
 
+    // Minimum policy check
     const policy = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
     if (!policy.test(newPassword)) {
       return res.status(400).json({

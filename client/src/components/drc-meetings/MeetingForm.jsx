@@ -32,6 +32,7 @@ const MeetingForm = ({
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
+  // Initialize form with meeting data if editing
   useEffect(() => {
     if (meeting) {
       setFormData({
@@ -96,19 +97,9 @@ const MeetingForm = ({
       return;
     }
 
-    // Clean up attendees array to remove any undefined values
-    const cleanedFormData = {
-      ...formData,
-      attendees: formData.attendees.filter((id) => id && id !== undefined),
-    };
-
-    console.log("Submitting meeting with data:", cleanedFormData);
-    console.log("Original attendees:", formData.attendees);
-    console.log("Cleaned attendees:", cleanedFormData.attendees);
-
     setLoading(true);
     try {
-      await onSubmit(cleanedFormData);
+      await onSubmit(formData);
       toast.success(
         meeting
           ? "Meeting updated successfully!"
@@ -128,6 +119,7 @@ const MeetingForm = ({
       [name]: value,
     }));
 
+    // Clear error when user starts typing
     if (errors[name]) {
       setErrors((prev) => ({
         ...prev,
@@ -137,14 +129,6 @@ const MeetingForm = ({
   };
 
   const handleAttendeeToggle = (attendeeId) => {
-    // Only proceed if we have a valid attendeeId
-    if (!attendeeId) {
-      console.warn("Attempted to toggle attendee with undefined ID");
-      return;
-    }
-
-    console.log("Toggling attendee with ID:", attendeeId);
-
     setFormData((prev) => ({
       ...prev,
       attendees: prev.attendees.includes(attendeeId)
@@ -155,26 +139,16 @@ const MeetingForm = ({
 
   const getAvailableFaculties = () => {
     if (!formData.departmentCode) return [];
-    const filteredFaculties = faculties.filter(
+    return faculties.filter(
       (f) => f.departmentCode === formData.departmentCode
     );
-
-    // Debug logging to see faculty data structure
-    if (filteredFaculties.length > 0) {
-      console.log(
-        "Available faculties for department:",
-        formData.departmentCode,
-        filteredFaculties
-      );
-    }
-
-    return filteredFaculties;
   };
 
   const availableFaculties = getAvailableFaculties();
 
   return (
     <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+      {/* Header */}
       <div className="flex items-center justify-between p-6 border-b border-gray-200">
         <div className="flex items-center gap-3">
           <div className="bg-blue-100 p-2 rounded-full">
@@ -199,8 +173,10 @@ const MeetingForm = ({
         </button>
       </div>
 
+      {/* Form */}
       <form onSubmit={handleSubmit} className="p-6 space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Title */}
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Meeting Title <span className="text-red-500">*</span>
@@ -220,6 +196,7 @@ const MeetingForm = ({
             )}
           </div>
 
+          {/* Date */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Date <span className="text-red-500">*</span>
@@ -241,6 +218,7 @@ const MeetingForm = ({
             )}
           </div>
 
+          {/* Time */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Time <span className="text-red-500">*</span>
@@ -263,6 +241,7 @@ const MeetingForm = ({
             )}
           </div>
 
+          {/* Venue */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Venue <span className="text-red-500">*</span>
@@ -285,6 +264,7 @@ const MeetingForm = ({
             )}
           </div>
 
+          {/* Meeting Type */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Meeting Type
@@ -303,6 +283,7 @@ const MeetingForm = ({
             </select>
           </div>
 
+          {/* Department */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Department <span className="text-red-500">*</span>
@@ -316,13 +297,11 @@ const MeetingForm = ({
               }`}
             >
               <option value="">Select Department</option>
-              {departments &&
-                departments.length > 0 &&
-                departments.map((dept) => (
-                  <option key={dept.code} value={dept.code}>
-                    {dept.name} ({dept.code})
-                  </option>
-                ))}
+              {departments.map((dept) => (
+                <option key={dept.code} value={dept.code}>
+                  {dept.name} ({dept.code})
+                </option>
+              ))}
             </select>
             {errors.departmentCode && (
               <p className="mt-1 text-sm text-red-600">
@@ -332,6 +311,7 @@ const MeetingForm = ({
           </div>
         </div>
 
+        {/* Agenda */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Agenda <span className="text-red-500">*</span>
@@ -351,6 +331,7 @@ const MeetingForm = ({
           )}
         </div>
 
+        {/* Notes */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Additional Notes
@@ -365,6 +346,7 @@ const MeetingForm = ({
           />
         </div>
 
+        {/* Attendees */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Select Attendees
@@ -381,17 +363,13 @@ const MeetingForm = ({
                       <input
                         type="checkbox"
                         checked={formData.attendees.includes(
-                          faculty.userId || faculty.userAccountId?._id
+                          faculty.userId || faculty._id
                         )}
                         onChange={() =>
-                          handleAttendeeToggle(
-                            faculty.userId || faculty.userAccountId?._id
-                          )
+                          handleAttendeeToggle(faculty.userId || faculty._id)
                         }
                         className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                        disabled={
-                          !faculty.userId && !faculty.userAccountId?._id
-                        }
+                        disabled={!faculty.userId}
                       />
                       <div>
                         <span className="text-sm font-medium text-gray-900">
@@ -399,7 +377,7 @@ const MeetingForm = ({
                         </span>
                         <p className="text-xs text-gray-500">
                           {faculty.designation}
-                          {!faculty.userId && !faculty.userAccountId?._id && (
+                          {!faculty.userId && (
                             <span className="text-red-500 ml-1">
                               (No user account)
                             </span>
@@ -422,6 +400,7 @@ const MeetingForm = ({
           )}
         </div>
 
+        {/* Action Buttons */}
         <div className="flex justify-end gap-3 pt-6 border-t border-gray-200">
           <button
             type="button"

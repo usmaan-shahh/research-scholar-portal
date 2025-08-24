@@ -41,11 +41,13 @@ const userSchema = new mongoose.Schema(
       ],
       required: true,
     },
+    // Backward compatible existing field
     department: {
       type: String,
       required: true,
       trim: true,
     },
+    // New explicit department code field (optional for now)
     departmentCode: {
       type: String,
       trim: true,

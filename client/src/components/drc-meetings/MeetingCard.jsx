@@ -93,6 +93,7 @@ const MeetingCard = ({
         return;
       }
       if (file.size > 10 * 1024 * 1024) {
+        // 10MB
         toast.error("File size must be less than 10MB");
         return;
       }
@@ -112,6 +113,7 @@ const MeetingCard = ({
         isToday ? "ring-2 ring-blue-400" : ""
       }`}
     >
+      {/* Header with status and type */}
       <div className="bg-gradient-to-r from-blue-500 to-cyan-500 p-4 text-white">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
@@ -123,10 +125,13 @@ const MeetingCard = ({
           {getStatusBadge(meeting.status)}
         </div>
 
+        {/* Meeting ID */}
         <p className="text-blue-100 text-sm font-mono">{meeting.meetingId}</p>
       </div>
 
+      {/* Content */}
       <div className="p-4 space-y-3">
+        {/* Date and Time */}
         <div className="flex items-center gap-2 text-sm text-gray-600">
           <HiCalendar className="w-4 h-4 text-blue-500" />
           <span className="font-medium">{formatDate(meeting.date)}</span>
@@ -147,11 +152,13 @@ const MeetingCard = ({
           <span>{formatTime(meeting.time)}</span>
         </div>
 
+        {/* Venue */}
         <div className="flex items-center gap-2 text-sm text-gray-600">
           <HiLocationMarker className="w-4 h-4 text-red-500" />
           <span className="font-medium">{meeting.venue}</span>
         </div>
 
+        {/* Meeting Type */}
         <div className="flex items-center gap-2 text-sm">
           <span className="text-gray-600">Type:</span>
           <span className="font-medium text-gray-800">
@@ -159,11 +166,13 @@ const MeetingCard = ({
           </span>
         </div>
 
+        {/* Agenda Preview */}
         <div className="text-sm">
           <span className="text-gray-600 font-medium">Agenda:</span>
           <p className="text-gray-800 mt-1 line-clamp-2">{meeting.agenda}</p>
         </div>
 
+        {/* Attendees */}
         <div className="text-sm">
           <div className="flex items-center justify-between">
             <span className="text-gray-600 font-medium">Attendees:</span>
@@ -193,6 +202,7 @@ const MeetingCard = ({
             )}
         </div>
 
+        {/* Minutes Status */}
         {meeting.minutesOfMeeting?.fileName && (
           <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 p-2 rounded border border-green-200">
             <HiDocumentText className="w-4 h-4" />
@@ -200,6 +210,7 @@ const MeetingCard = ({
           </div>
         )}
 
+        {/* Notes */}
         {meeting.notes && (
           <div className="text-sm">
             <span className="text-gray-600 font-medium">Notes:</span>
@@ -208,6 +219,7 @@ const MeetingCard = ({
         )}
       </div>
 
+      {/* Actions */}
       <div className="px-4 py-3 bg-gray-50 border-t border-gray-100">
         <div className="flex items-center justify-between">
           <button
@@ -219,6 +231,7 @@ const MeetingCard = ({
           </button>
 
           <div className="flex space-x-2">
+            {/* Download Minutes */}
             {meeting.minutesOfMeeting?.fileName && (
               <button
                 onClick={() => onDownloadMinutes(meeting._id)}
@@ -229,6 +242,7 @@ const MeetingCard = ({
               </button>
             )}
 
+            {/* Upload Minutes */}
             {canEdit && meeting.status === "scheduled" && (
               <label className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors cursor-pointer">
                 <input
@@ -242,6 +256,7 @@ const MeetingCard = ({
               </label>
             )}
 
+            {/* Edit Meeting */}
             {canEdit && meeting.status === "scheduled" && (
               <button
                 onClick={() => onEdit(meeting)}
@@ -252,6 +267,7 @@ const MeetingCard = ({
               </button>
             )}
 
+            {/* Delete/Cancel Meeting */}
             {canEdit && meeting.status === "scheduled" && (
               <button
                 onClick={() => onDelete(meeting._id, false)}

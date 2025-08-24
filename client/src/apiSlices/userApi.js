@@ -45,6 +45,7 @@ export const userApi = createApi({
       }),
       invalidatesTags: ["User"],
     }),
+    // Main Office User APIs
     createMainOfficeUser: builder.mutation({
       query: ({ departmentCode, tempPassword }) => ({
         url: "/users/main-office",
@@ -61,6 +62,7 @@ export const userApi = createApi({
       }),
       invalidatesTags: ["User"],
     }),
+    // DRC Chair User APIs
     createDRCChairUser: builder.mutation({
       query: ({ departmentCode, tempPassword }) => ({
         url: "/users/drc-chair",

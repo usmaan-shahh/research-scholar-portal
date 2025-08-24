@@ -10,7 +10,6 @@
     transform: none;
   }
 }
-
 .animate-modalIn {
   animation: modalIn 0.35s cubic-bezier(0.4, 2, 0.6, 1) both;
 }

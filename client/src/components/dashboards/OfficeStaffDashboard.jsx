@@ -36,6 +36,7 @@ const OfficeStaffDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-100 p-6">
+      {/* Header Section - Matching Admin Dashboard */}
       <div className="max-w-7xl mx-auto">
         <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl border border-white/20 p-8 mb-8">
           <div className="text-center">
@@ -56,6 +57,7 @@ const OfficeStaffDashboard = () => {
           </div>
         </div>
 
+        {/* Tab Navigation - Matching Admin Dashboard Style */}
         <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-lg border border-white/20 p-2 mb-8">
           <div className="flex space-x-1">
             {Object.entries(TABS).map(([key, tab]) => (
@@ -75,6 +77,7 @@ const OfficeStaffDashboard = () => {
           </div>
         </div>
 
+        {/* Tab Content - Matching Admin Dashboard Layout */}
         <div className="space-y-8">{TABS[activeTab].component}</div>
       </div>
     </div>

@@ -1,10 +1,140 @@
 import Scholar from "../models/Scholar.js";
 import Faculty from "../models/Faculty.js";
 import Department from "../models/Department.js";
+import Notification from "../models/Notification.js";
 import {
   validateSupervisorAssignment,
   refreshFacultySupervisionData,
 } from "../utils/supervisionValidation.js";
+
+// Helper function to create supervisor assignment notifications
+const createSupervisorAssignmentNotifications = async (
+  scholar,
+  oldSupervisor,
+  newSupervisor,
+  oldCoSupervisor,
+  newCoSupervisor,
+  departmentCode
+) => {
+  try {
+    const notifications = [];
+
+    // Get faculty members to find their user account IDs
+    const facultyIds = [];
+    if (newSupervisor) facultyIds.push(newSupervisor);
+    if (oldSupervisor) facultyIds.push(oldSupervisor);
+    if (newCoSupervisor) facultyIds.push(newCoSupervisor);
+    if (oldCoSupervisor) facultyIds.push(oldCoSupervisor);
+
+    console.log(
+      "Creating supervisor notifications for faculty IDs:",
+      facultyIds
+    );
+
+    const faculties = await Faculty.find({ _id: { $in: facultyIds } }).populate(
+      "userAccountId"
+    );
+    console.log(
+      "Found faculties:",
+      faculties.map((f) => ({
+        id: f._id,
+        name: f.name,
+        userAccountId: f.userAccountId?._id,
+      }))
+    );
+
+    const facultyMap = new Map(
+      faculties.map((f) => [f._id.toString(), f.userAccountId?._id])
+    );
+    console.log("Faculty map:", Object.fromEntries(facultyMap));
+
+    // Supervisor assignment notifications
+    if (newSupervisor && newSupervisor !== oldSupervisor) {
+      const userAccountId = facultyMap.get(newSupervisor.toString());
+      if (userAccountId) {
+        // Notify new supervisor
+        const supervisorNotification = new Notification({
+          recipient: userAccountId,
+          type: "supervisor_assigned",
+          title: "New Scholar Assignment",
+          message: `You have been assigned as the supervisor for ${scholar.name} (${scholar.rollNo}).`,
+          departmentCode,
+          priority: "medium",
+        });
+        notifications.push(supervisorNotification.save());
+      }
+    }
+
+    if (oldSupervisor && oldSupervisor !== newSupervisor) {
+      const userAccountId = facultyMap.get(oldSupervisor.toString());
+      if (userAccountId) {
+        // Notify old supervisor about removal
+        const removalNotification = new Notification({
+          recipient: userAccountId,
+          type: "supervisor_removed",
+          title: "Scholar Assignment Removed",
+          message: `Your supervision assignment for ${scholar.name} (${scholar.rollNo}) has been removed.`,
+          departmentCode,
+          priority: "medium",
+        });
+        notifications.push(removalNotification.save());
+      }
+    }
+
+    // Co-supervisor assignment notifications
+    if (newCoSupervisor && newCoSupervisor !== oldCoSupervisor) {
+      const userAccountId = facultyMap.get(newCoSupervisor.toString());
+      if (userAccountId) {
+        // Notify new co-supervisor
+        const coSupervisorNotification = new Notification({
+          recipient: userAccountId,
+          type: "co_supervisor_assigned",
+          title: "New Co-Supervisor Assignment",
+          message: `You have been assigned as the co-supervisor for ${scholar.name} (${scholar.rollNo}).`,
+          departmentCode,
+          priority: "medium",
+        });
+        notifications.push(coSupervisorNotification.save());
+      }
+    }
+
+    if (oldCoSupervisor && oldCoSupervisor !== newCoSupervisor) {
+      const userAccountId = facultyMap.get(oldCoSupervisor.toString());
+      if (userAccountId) {
+        // Notify old co-supervisor about removal
+        const coRemovalNotification = new Notification({
+          recipient: userAccountId,
+          type: "co_supervisor_removed",
+          title: "Co-Supervisor Assignment Removed",
+          message: `Your co-supervision assignment for ${scholar.name} (${scholar.rollNo}) has been removed.`,
+          departmentCode,
+          priority: "medium",
+        });
+        notifications.push(coRemovalNotification.save());
+      }
+    }
+
+    if (notifications.length > 0) {
+      await Promise.all(notifications);
+      console.log(
+        `Created ${notifications.length} supervisor assignment notifications`
+      );
+      console.log(
+        "Notification details:",
+        notifications.map((n) => ({
+          recipient: n.recipient,
+          type: n.type,
+          title: n.title,
+        }))
+      );
+    } else {
+      console.log("No supervisor assignment notifications created");
+    }
+  } catch (error) {
+    console.error("Error creating supervisor assignment notifications:", error);
+    // Don't fail the scholar operation if notifications fail
+  }
+};
 
 // Create Scholar
 export const createScholar = async (req, res) => {
@@ -133,6 +263,18 @@ export const createScholar = async (req, res) => {
       coSupervisor: scholar.coSupervisor,
     });
 
+    // Create notifications for supervisor assignments if any
+    if (scholar.supervisor || scholar.coSupervisor) {
+      await createSupervisorAssignmentNotifications(
+        scholar,
+        null, // oldSupervisor
+        scholar.supervisor, // newSupervisor
+        null, // oldCoSupervisor
+        scholar.coSupervisor, // newCoSupervisor
+        scholar.departmentCode
+      );
+    }
+
     // Populate supervisor and co-supervisor details
     await scholar.populate([
       { path: "supervisor", select: "name designation" },
@@ -154,13 +296,18 @@ export const createScholar = async (req, res) => {
 // Get all Scholars (with optional filters)
 export const getScholars = async (req, res) => {
   try {
-    const { departmentCode, isActive, supervisor } = req.query;
+    const { departmentCode, isActive, supervisor, coSupervisor } = req.query;
     let filter = {};
 
     if (departmentCode) filter.departmentCode = departmentCode;
     if (isActive !== undefined && isActive !== "")
       filter.isActive = isActive === "true";
-    if (supervisor && supervisor !== "") filter.supervisor = supervisor;
+
+    // Handle supervisor and coSupervisor filtering
+    if (supervisor && supervisor !== "") {
+      // Always use $or to find scholars where user is either supervisor or coSupervisor
+      filter.$or = [{ supervisor: supervisor }, { coSupervisor: supervisor }];
+    }
 
     // RBAC: main_office and drc_chair only see own department
     // But don't overwrite if they're explicitly querying for a different department
@@ -176,10 +323,22 @@ export const getScholars = async (req, res) => {
         });
       }
     }
+    
+    // For supervisor role, also apply department filtering if they have a department
+    if (req.user?.role === "supervisor" && req.user?.departmentCode) {
+      if (!departmentCode) {
+        filter.departmentCode = req.user.departmentCode;
+      }
+    }
 
     console.log("Backend filter:", filter);
     console.log("User role:", req.user?.role);
     console.log("User department:", req.user?.departmentCode);
+    console.log("User ID:", req.user?._id);
+    console.log("Query params:", req.query);
+    console.log("Supervisor filter:", supervisor);
+    console.log("CoSupervisor filter:", coSupervisor);
+    console.log("Final MongoDB filter:", JSON.stringify(filter, null, 2));
 
     const scholars = await Scholar.find(filter)
       .populate("supervisor", "name designation")
@@ -191,6 +350,24 @@ export const getScholars = async (req, res) => {
       "Scholar departments:",
       scholars.map((s) => ({ id: s._id, dept: s.departmentCode }))
     );
+    console.log(
+      "Scholar supervisors:",
+      scholars.map((s) => ({
+        id: s._id,
+        supervisor: s.supervisor,
+        coSupervisor: s.coSupervisor,
+      }))
+    );
+    
+    // Debug: Let's also see ALL scholars to understand the data
+    const allScholars = await Scholar.find({}).populate("supervisor", "name designation").populate("coSupervisor", "name designation");
+    console.log("All scholars in database:", allScholars.map(s => ({ 
+      id: s._id, 
+      name: s.name, 
+      supervisor: s.supervisor?._id || s.supervisor, 
+      coSupervisor: s.coSupervisor?._id || s.coSupervisor,
+      department: s.departmentCode 
+    })));
 
     res.json(scholars);
   } catch (err) {
@@ -445,6 +622,16 @@ export const updateScholar = async (req, res) => {
     const uniqueFacultyIds = [...new Set(facultyIdsToRefresh)];
     await refreshFacultySupervisionData(uniqueFacultyIds);
 
+    // Create notifications for supervisor assignment changes
+    await createSupervisorAssignmentNotifications(
+      scholar,
+      existingScholar.supervisor,
+      finalSupervisor,
+      existingScholar.coSupervisor,
+      finalCoSupervisor,
+      scholar.departmentCode
+    );
+
     res.json(scholar);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -483,6 +670,18 @@ export const deleteScholar = async (req, res) => {
       if (scholar.supervisor) facultyIdsToRefresh.push(scholar.supervisor);
       if (scholar.coSupervisor) facultyIdsToRefresh.push(scholar.coSupervisor);
       await refreshFacultySupervisionData(facultyIdsToRefresh);
+
+      // Create notifications for existing supervisor assignments
+      if (scholar.supervisor || scholar.coSupervisor) {
+        await createSupervisorAssignmentNotifications(
+          scholar,
+          null, // oldSupervisor
+          scholar.supervisor, // newSupervisor
+          null, // oldCoSupervisor
+          scholar.coSupervisor, // newCoSupervisor
+          scholar.departmentCode
+        );
+      }
 
       res.json({ message: "Scholar reactivated successfully" });
     } else if (permanent === "true") {

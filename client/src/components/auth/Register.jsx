@@ -46,6 +46,7 @@ const Register = () => {
 
       dispatch(setCredentials(userData));
 
+      // Map role to correct route path
       const roleRoutes = {
         office_staff: "/office-staff",
         drc_member: "/drc-staff",
@@ -59,6 +60,7 @@ const Register = () => {
 
       navigate(roleRoutes[userData.role] || "/login");
     } catch (err) {
+      console.error("Registration error:", err);
       setError(err.data?.message || "Registration failed");
     }
   };

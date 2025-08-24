@@ -22,6 +22,7 @@ const DepartmentCard = ({ department, onEdit, onDelete }) => {
   const [createDRCChair] = useCreateDRCChairUserMutation();
   const [resetDRCChairPassword] = useResetDRCChairPasswordMutation();
 
+  // Check if DRC Chair exists for this department
   const drcChair = users.find(
     (user) =>
       user.role === "drc_chair" && user.departmentCode === department.code
@@ -77,9 +78,11 @@ const DepartmentCard = ({ department, onEdit, onDelete }) => {
   return (
     <>
       <div className="group relative bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1 w-full">
+        {/* Gradient accent bar */}
         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-blue-600 to-cyan-500"></div>
 
         <div className="p-6">
+          {/* Header Section */}
           <div className="flex items-start justify-between mb-5">
             <div className="flex items-center flex-1 min-w-0">
               <div className="relative flex-shrink-0">
@@ -103,7 +106,9 @@ const DepartmentCard = ({ department, onEdit, onDelete }) => {
             </div>
           </div>
 
+          {/* Content Section */}
           <div className="space-y-4">
+            {/* Address */}
             <div className="flex items-start">
               <div className="flex-shrink-0 w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center mr-3">
                 <HiOutlineLocationMarker className="w-4 h-4 text-gray-500" />
@@ -118,6 +123,7 @@ const DepartmentCard = ({ department, onEdit, onDelete }) => {
               </div>
             </div>
 
+            {/* Block */}
             <div className="flex items-start">
               <div className="flex-shrink-0 w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center mr-3">
                 <HiOutlineMap className="w-4 h-4 text-gray-500" />
@@ -130,6 +136,7 @@ const DepartmentCard = ({ department, onEdit, onDelete }) => {
               </div>
             </div>
 
+            {/* DRC Chair Status */}
             <div className="flex items-start">
               <div className="flex-shrink-0 w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center mr-3">
                 <HiUserGroup className="w-4 h-4 text-gray-500" />
@@ -163,6 +170,7 @@ const DepartmentCard = ({ department, onEdit, onDelete }) => {
           </div>
         </div>
 
+        {/* Action Bar */}
         <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-gray-100 border-t border-gray-200 flex justify-between items-center">
           <div className="flex items-center text-xs text-gray-500">
             <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
@@ -195,16 +203,20 @@ const DepartmentCard = ({ department, onEdit, onDelete }) => {
           </div>
         </div>
 
+        {/* Hover overlay effect */}
         <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-cyan-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
       </div>
 
+      {/* DRC Chair Creation Modal */}
       {showDRCModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
           <div className="relative w-full max-w-md mx-auto p-0 bg-white/70 backdrop-blur-lg rounded-3xl shadow-2xl animate-modalIn border border-white/30">
+            {/* Floating Icon */}
             <div className="absolute -top-10 left-1/2 -translate-x-1/2 flex items-center justify-center w-20 h-20 bg-gradient-to-tr from-green-500 to-emerald-400 rounded-full shadow-lg border-4 border-white/60">
               <HiUserGroup className="w-10 h-10 text-white" />
             </div>
 
+            {/* Modal Header */}
             <div className="flex flex-col items-center pt-14 pb-2 px-8">
               <h3 className="text-2xl font-extrabold text-gray-800 tracking-tight mb-1 drop-shadow">
                 Create DRC Chair

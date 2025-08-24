@@ -15,6 +15,7 @@ export const drcMeetingApi = createApi({
   }),
   tagTypes: ["DRCMeeting"],
   endpoints: (builder) => ({
+    // Get all meetings with filtering
     getMeetings: builder.query({
       query: (params) => ({
         url: "/drc-meetings",
@@ -32,11 +33,13 @@ export const drcMeetingApi = createApi({
           : [{ type: "DRCMeeting", id: "LIST" }],
     }),
 
+    // Get meeting by ID
     getMeetingById: builder.query({
       query: (id) => `/drc-meetings/${id}`,
       providesTags: (result, error, id) => [{ type: "DRCMeeting", id }],
     }),
 
+    // Get meeting statistics
     getMeetingStats: builder.query({
       query: (params) => ({
         url: "/drc-meetings/stats",
@@ -45,6 +48,7 @@ export const drcMeetingApi = createApi({
       providesTags: ["DRCMeeting"],
     }),
 
+    // Create new meeting
     createMeeting: builder.mutation({
       query: (meetingData) => ({
         url: "/drc-meetings",
@@ -54,6 +58,7 @@ export const drcMeetingApi = createApi({
       invalidatesTags: [{ type: "DRCMeeting", id: "LIST" }],
     }),
 
+    // Update meeting
     updateMeeting: builder.mutation({
       query: ({ id, ...meetingData }) => ({
         url: `/drc-meetings/${id}`,
@@ -66,6 +71,7 @@ export const drcMeetingApi = createApi({
       ],
     }),
 
+    // Delete/Cancel meeting
     deleteMeeting: builder.mutation({
       query: ({ id, permanent = false }) => ({
         url: `/drc-meetings/${id}?permanent=${permanent}`,
@@ -74,6 +80,7 @@ export const drcMeetingApi = createApi({
       invalidatesTags: [{ type: "DRCMeeting", id: "LIST" }],
     }),
 
+    // Upload meeting minutes
     uploadMinutes: builder.mutation({
       query: ({ id, minutesFile }) => {
         const formData = new FormData();
@@ -83,7 +90,10 @@ export const drcMeetingApi = createApi({
           url: `/drc-meetings/${id}/upload-minutes`,
           method: "POST",
           body: formData,
-          headers: {},
+          // Don't set Content-Type header, let the browser set it with boundary
+          headers: {
+            // Remove any default headers that might interfere with file upload
+          },
         };
       },
       invalidatesTags: (result, error, { id }) => [
@@ -92,6 +102,7 @@ export const drcMeetingApi = createApi({
       ],
     }),
 
+    // Download meeting minutes
     downloadMinutes: builder.mutation({
       query: (id) => ({
         url: `/drc-meetings/${id}/download-minutes`,

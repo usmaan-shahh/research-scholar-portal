@@ -95,6 +95,7 @@ const MeetingDetailsModal = ({
         return;
       }
       if (file.size > 10 * 1024 * 1024) {
+        // 10MB
         toast.error("File size must be less than 10MB");
         return;
       }
@@ -119,6 +120,7 @@ const MeetingDetailsModal = ({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div className="flex items-center gap-3">
             <div className="bg-blue-100 p-2 rounded-full">
@@ -143,7 +145,9 @@ const MeetingDetailsModal = ({
           </button>
         </div>
 
+        {/* Content */}
         <div className="p-6 space-y-6">
+          {/* Status and Type */}
           <div className="flex items-center gap-4">
             {getStatusBadge(meeting.status)}
             <div className="flex items-center gap-2">
@@ -156,6 +160,7 @@ const MeetingDetailsModal = ({
             </div>
           </div>
 
+          {/* Date and Time */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="flex items-center gap-3">
               <HiCalendar className="w-5 h-5 text-blue-500" />
@@ -188,6 +193,7 @@ const MeetingDetailsModal = ({
             </div>
           </div>
 
+          {/* Venue */}
           <div className="flex items-center gap-3">
             <HiLocationMarker className="w-5 h-5 text-red-500" />
             <div>
@@ -196,6 +202,7 @@ const MeetingDetailsModal = ({
             </div>
           </div>
 
+          {/* Department */}
           <div>
             <p className="text-sm text-gray-600 mb-1">Department</p>
             <p className="font-medium text-gray-900">
@@ -203,6 +210,7 @@ const MeetingDetailsModal = ({
             </p>
           </div>
 
+          {/* Agenda */}
           <div>
             <p className="text-sm text-gray-600 mb-2">Agenda</p>
             <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
@@ -212,6 +220,7 @@ const MeetingDetailsModal = ({
             </div>
           </div>
 
+          {/* Notes */}
           {meeting.notes && (
             <div>
               <p className="text-sm text-gray-600 mb-2">Additional Notes</p>
@@ -223,6 +232,7 @@ const MeetingDetailsModal = ({
             </div>
           )}
 
+          {/* Attendees */}
           <div>
             <div className="flex items-center justify-between mb-3">
               <p className="text-sm text-gray-600">
@@ -258,6 +268,7 @@ const MeetingDetailsModal = ({
             )}
           </div>
 
+          {/* Meeting Minutes */}
           <div>
             <div className="flex items-center justify-between mb-3">
               <p className="text-sm text-gray-600">Meeting Minutes</p>
@@ -341,6 +352,7 @@ const MeetingDetailsModal = ({
             )}
           </div>
 
+          {/* Created By */}
           <div>
             <p className="text-sm text-gray-600 mb-1">Created By</p>
             <p className="font-medium text-gray-900">
@@ -350,9 +362,11 @@ const MeetingDetailsModal = ({
           </div>
         </div>
 
+        {/* Actions */}
         <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
           <div className="flex justify-between items-center">
             <div className="flex gap-2">
+              {/* Edit Meeting */}
               {canEdit && meeting.status === "scheduled" && (
                 <button
                   onClick={() => onEdit(meeting)}
@@ -363,6 +377,7 @@ const MeetingDetailsModal = ({
                 </button>
               )}
 
+              {/* Cancel Meeting */}
               {canEdit && meeting.status === "scheduled" && (
                 <button
                   onClick={() => onDelete(meeting._id, false)}

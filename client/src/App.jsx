@@ -18,8 +18,10 @@ function App() {
       <BrowserRouter>
         <ToastContainer />
         <Routes>
+          {/* Public Routes */}
           <Route path="/login" element={<Login />} />
 
+          {/* Password Change Route - Must be before other protected routes */}
           <Route
             path="/change-password"
             element={
@@ -36,6 +38,7 @@ function App() {
             }
           />
 
+          {/* Protected Dashboard Routes */}
           <Route
             path="/admin/*"
             element={
@@ -54,6 +57,7 @@ function App() {
             }
           />
 
+          {/* Faculty Dashboard Route */}
           <Route
             path="/supervisor/*"
             element={
@@ -63,6 +67,7 @@ function App() {
             }
           />
 
+          {/* DRC Chair Route */}
           <Route
             path="/drc-chair/*"
             element={
@@ -72,7 +77,10 @@ function App() {
             }
           />
 
+          {/* Redirect root to login */}
           <Route path="/" element={<Navigate to="/login" replace />} />
+
+          {/* Catch all route */}
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </BrowserRouter>

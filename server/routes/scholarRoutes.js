@@ -1,4 +1,5 @@
 import express from "express";
+import Scholar from "../models/Scholar.js";
 import {
   createScholar,
   getScholars,
@@ -31,6 +32,32 @@ router.get(
   "/count",
   authorize(["admin", "main_office", "drc_chair"]),
   getScholarsCount
+);
+
+// Debug endpoint to check all scholars (temporary)
+router.get(
+  "/debug/all",
+  authorize(["admin", "main_office", "drc_chair"]),
+  async (req, res) => {
+    try {
+      const scholars = await Scholar.find({})
+        .populate("supervisor", "name designation")
+        .populate("coSupervisor", "name designation");
+
+      res.json({
+        total: scholars.length,
+        scholars: scholars.map((s) => ({
+          id: s._id,
+          name: s.name,
+          supervisor: s.supervisor?._id || s.supervisor,
+          coSupervisor: s.coSupervisor?._id || s.coSupervisor,
+          department: s.departmentCode,
+        })),
+      });
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  }
 );
 
 router.get(

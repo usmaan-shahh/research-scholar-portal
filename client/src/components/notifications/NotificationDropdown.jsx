@@ -90,6 +90,14 @@ const NotificationDropdown = () => {
         return "❌";
       case "minutes_uploaded":
         return "📄";
+      case "supervisor_assigned":
+        return "👨‍🎓";
+      case "supervisor_removed":
+        return "🚫";
+      case "co_supervisor_assigned":
+        return "👥";
+      case "co_supervisor_removed":
+        return "🚫";
       default:
         return "🔔";
     }
