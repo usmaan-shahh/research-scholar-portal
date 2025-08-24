@@ -34,9 +34,11 @@ const DepartmentSection = () => {
 
   const filteredDepartments = useMemo(() => {
     if (!deptSearch.trim()) return departments;
-    return departments.filter((dept) =>
-      dept.code.toLowerCase().includes(deptSearch.trim().toLowerCase())
-    );
+    return departments && departments.length > 0
+      ? departments.filter((dept) =>
+          dept.code.toLowerCase().includes(deptSearch.trim().toLowerCase())
+        )
+      : [];
   }, [departments, deptSearch]);
 
   const handleDeptChange = (e) =>
@@ -129,7 +131,9 @@ const DepartmentSection = () => {
         <div className="text-center py-12 text-red-500">
           <p className="text-lg font-semibold">Error loading departments</p>
           <p className="text-sm">
-            {deptError.data?.message || deptError.message || "Failed to load departments"}
+            {deptError.data?.message ||
+              deptError.message ||
+              "Failed to load departments"}
           </p>
         </div>
       ) : filteredDepartments.length === 0 ? (
@@ -137,7 +141,9 @@ const DepartmentSection = () => {
           <HiOfficeBuilding className="w-16 h-16 mx-auto mb-4 text-gray-300" />
           <p className="text-lg font-medium">No departments found</p>
           <p className="text-sm">
-            {deptSearch ? "Try adjusting your search" : "No departments have been created yet"}
+            {deptSearch
+              ? "Try adjusting your search"
+              : "No departments have been created yet"}
           </p>
         </div>
       ) : (

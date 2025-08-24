@@ -275,11 +275,13 @@ const FacultySection = ({
                 className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="">All Departments</option>
-                {departments.map((dept) => (
-                  <option key={dept._id} value={dept.code}>
-                    {dept.name} ({dept.code})
-                  </option>
-                ))}
+                {departments &&
+                  departments.length > 0 &&
+                  departments.map((dept) => (
+                    <option key={dept.code} value={dept.code}>
+                      {dept.name}
+                    </option>
+                  ))}
               </select>
             )}
 
@@ -351,6 +353,7 @@ const FacultySection = ({
             <FacultyCard
               key={faculty._id}
               faculty={faculty}
+              departments={departments}
               onEdit={() => handleFacultyEdit(faculty)}
               onDelete={() => handleFacultyDelete(faculty._id)}
               onCreateAccount={() => handleCreateAccount(faculty)}

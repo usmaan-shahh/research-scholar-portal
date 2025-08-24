@@ -287,11 +287,13 @@ const MeetingForm = ({
               }`}
             >
               <option value="">Select Department</option>
-              {departments.map((dept) => (
-                <option key={dept.code} value={dept.code}>
-                  {dept.name} ({dept.code})
-                </option>
-              ))}
+              {departments &&
+                departments.length > 0 &&
+                departments.map((dept) => (
+                  <option key={dept.code} value={dept.code}>
+                    {dept.name} ({dept.code})
+                  </option>
+                ))}
             </select>
             {errors.departmentCode && (
               <p className="mt-1 text-sm text-red-600">

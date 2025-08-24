@@ -15,9 +15,14 @@ const FacultyModal = ({
   if (!isOpen) return null;
 
   const departmentName = lockedDepartmentCode
-    ? departments.find((d) => d.code === lockedDepartmentCode)?.name ||
-      lockedDepartmentCode
-    : departments.find((d) => d.code === formData.departmentCode)?.name;
+    ? departments && departments.length > 0
+      ? departments.find((d) => d.code === lockedDepartmentCode)?.name ||
+        lockedDepartmentCode
+      : lockedDepartmentCode
+    : departments && departments.length > 0
+    ? departments.find((d) => d.code === formData.departmentCode)?.name ||
+      formData.departmentCode
+    : formData.departmentCode;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
@@ -89,11 +94,13 @@ const FacultyModal = ({
                 className="block w-full rounded-xl border border-gray-300 bg-white/60 shadow-inner focus:border-blue-400 focus:ring-2 focus:ring-blue-200 sm:text-base px-4 py-2 transition"
               >
                 <option value="">Select Department</option>
-                {departments.map((dept) => (
-                  <option key={dept.code} value={dept.code}>
-                    {dept.name}
-                  </option>
-                ))}
+                {departments &&
+                  departments.length > 0 &&
+                  departments.map((dept) => (
+                    <option key={dept.code} value={dept.code}>
+                      {dept.name}
+                    </option>
+                  ))}
               </select>
             )}
           </div>

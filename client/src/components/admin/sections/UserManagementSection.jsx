@@ -68,14 +68,18 @@ const UserManagementSection = () => {
     const used = new Set(
       mainOfficeUsers.map((u) => (u.departmentCode || "").toUpperCase())
     );
-    return departments.filter((d) => !used.has((d.code || "").toUpperCase()));
+    return departments && departments.length > 0
+      ? departments.filter((d) => !used.has((d.code || "").toUpperCase()))
+      : [];
   }, [departments, mainOfficeUsers]);
 
   const deptsWithoutDRCChair = useMemo(() => {
     const used = new Set(
       drcChairUsers.map((u) => (u.departmentCode || "").toUpperCase())
     );
-    return departments.filter((d) => !used.has((d.code || "").toUpperCase()));
+    return departments && departments.length > 0
+      ? departments.filter((d) => !used.has((d.code || "").toUpperCase()))
+      : [];
   }, [departments, drcChairUsers]);
 
   const usernamePreview = selectedDeptCode

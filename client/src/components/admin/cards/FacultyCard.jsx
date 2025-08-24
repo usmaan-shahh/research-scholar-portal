@@ -61,8 +61,10 @@ const FacultyCard = ({
                 Department
               </p>
               <p className="text-sm text-gray-600 leading-relaxed break-words">
-                {departments.find((d) => d.code === faculty.departmentCode)
-                  ?.name || faculty.departmentCode}
+                {departments && departments.length > 0
+                  ? departments.find((d) => d.code === faculty.departmentCode)
+                      ?.name || faculty.departmentCode
+                  : faculty.departmentCode}
               </p>
             </div>
           </div>
