@@ -11,6 +11,7 @@ import departmentRoutes from "./routes/departmentRoutes.js";
 import facultyRoutes from "./routes/facultyRoutes.js";
 import scholarRoutes from "./routes/scholarRoutes.js";
 import drcMeetingRoutes from "./routes/drcMeetingRoutes.js";
+import notificationRoutes from "./routes/notificationRoutes.js";
 import connectDB from "./configuration/connectDB.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -36,7 +37,7 @@ app.use(
   cors({
     origin: "http://localhost:5173",
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
@@ -49,6 +50,8 @@ app.use("/api/departments", departmentRoutes);
 app.use("/api/faculties", facultyRoutes);
 app.use("/api/scholars", scholarRoutes);
 app.use("/api/drc-meetings", drcMeetingRoutes);
+app.use("/api/notifications", notificationRoutes);
+console.log("✅ Notification routes registered at /api/notifications");
 
 app.use((err, req, res, next) => {
   console.error(err.stack);

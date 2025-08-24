@@ -3,6 +3,7 @@ import { FaUniversity } from "react-icons/fa";
 import DepartmentSection from "./sections/DepartmentSection";
 import FacultySection from "./sections/FacultySection";
 import UserManagementSection from "./sections/UserManagementSection";
+import NotificationDropdown from "../notifications/NotificationDropdown";
 
 const TABS = {
   DEPARTMENTS: "Department Section",
@@ -15,13 +16,20 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
-      <div className="flex items-center gap-3 mb-8">
-        <div className="bg-blue-600 text-white rounded-full p-3 shadow">
-          <FaUniversity size={28} />
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-3">
+          <div className="bg-blue-600 text-white rounded-full p-3 shadow">
+            <FaUniversity size={28} />
+          </div>
+          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-gray-800">
+            Admin Dashboard
+          </h1>
         </div>
-        <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-gray-800">
-          Admin Dashboard
-        </h1>
+
+        {/* Notification Dropdown */}
+        <div className="flex items-center gap-4">
+          <NotificationDropdown />
+        </div>
       </div>
 
       <div className="mb-8">

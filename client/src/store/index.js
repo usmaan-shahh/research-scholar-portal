@@ -8,6 +8,7 @@ import { departmentApi } from "../apiSlices/departmentApi";
 import { facultyApi } from "../apiSlices/facultyApi";
 import { scholarApi } from "../apiSlices/scholarApi";
 import { drcMeetingApi } from "../apiSlices/drcMeetingApi";
+import { notificationApi } from "../apiSlices/notificationApi";
 
 export const store = configureStore({
   reducer: {
@@ -19,6 +20,7 @@ export const store = configureStore({
     [facultyApi.reducerPath]: facultyApi.reducer,
     [scholarApi.reducerPath]: scholarApi.reducer,
     [drcMeetingApi.reducerPath]: drcMeetingApi.reducer,
+    [notificationApi.reducerPath]: notificationApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
@@ -27,7 +29,8 @@ export const store = configureStore({
       departmentApi.middleware,
       facultyApi.middleware,
       scholarApi.middleware,
-      drcMeetingApi.middleware
+      drcMeetingApi.middleware,
+      notificationApi.middleware
     ),
 });
 

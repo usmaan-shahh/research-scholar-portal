@@ -11,6 +11,7 @@ import {
 import { useGetScholarsQuery } from "../../apiSlices/scholarApi";
 import FacultyScholarCard from "./FacultyScholarCard";
 import FacultySupervisionStats from "./FacultySupervisionStats";
+import NotificationDropdown from "../notifications/NotificationDropdown";
 
 const TABS = {
   SUPERVISION: "Supervision",
@@ -124,7 +125,8 @@ const FacultyDashboard = () => {
                 Faculty Dashboard
               </h1>
               <p className="text-gray-600">
-                Welcome back, <span className="font-semibold">{user?.name}</span>
+                Welcome back,{" "}
+                <span className="font-semibold">{user?.name}</span>
               </p>
               <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
                 <span className="flex items-center gap-1">
@@ -138,6 +140,7 @@ const FacultyDashboard = () => {
               </div>
             </div>
             <div className="flex items-center gap-3">
+              <NotificationDropdown />
               <button
                 onClick={() => refetchScholars()}
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
@@ -273,7 +276,9 @@ const FacultyDashboard = () => {
                 >
                   <option value="name">Sort by Name</option>
                   <option value="rollNo">Sort by Roll No</option>
-                  <option value="dateOfAdmission">Sort by Admission Date</option>
+                  <option value="dateOfAdmission">
+                    Sort by Admission Date
+                  </option>
                   <option value="dateOfJoining">Sort by Joining Date</option>
                 </select>
               </div>
@@ -317,8 +322,8 @@ const FacultyDashboard = () => {
             {filteredAndSortedScholars.length > 0 && (
               <div className="mt-6 pt-6 border-t border-gray-200">
                 <p className="text-sm text-gray-600 text-center">
-                  Showing {filteredAndSortedScholars.length} of {scholars.length}{" "}
-                  scholars
+                  Showing {filteredAndSortedScholars.length} of{" "}
+                  {scholars.length} scholars
                   {searchTerm && ` matching "${searchTerm}"`}
                   {statusFilter !== "all" && ` (${statusFilter} status)`}
                 </p>

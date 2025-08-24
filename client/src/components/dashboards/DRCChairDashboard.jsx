@@ -13,6 +13,7 @@ import { useGetMeetingStatsQuery } from "../../apiSlices/drcMeetingApi";
 import ScholarsSection from "../admin/sections/ScholarsSection";
 import SupervisorAssignmentModal from "../admin/modals/SupervisorAssignmentModal";
 import DRCMeetingsDashboard from "../drc-meetings/DRCMeetingsDashboard";
+import NotificationDropdown from "../notifications/NotificationDropdown";
 
 const TABS = {
   SCHOLARS_AND_ASSIGNMENTS: "Scholars & Assignments",
@@ -83,28 +84,35 @@ const DRCChairDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
-      <div className="flex items-center gap-3 mb-8">
-        <div className="bg-green-600 text-white rounded-full p-3 shadow">
-          <FaUniversity size={28} />
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-3">
+          <div className="bg-green-600 text-white rounded-full p-3 shadow">
+            <FaUniversity size={28} />
+          </div>
+          <div>
+            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-gray-800">
+              DRC Chair Dashboard
+            </h1>
+            <p className="text-gray-600 mt-1">
+              Department:{" "}
+              {departmentCode ||
+                (scholarsLoading ? "Loading..." : "Not available")}{" "}
+              | Welcome,{" "}
+              {user?.name ||
+                user?.username ||
+                (scholarsLoading ? "Loading..." : "Not available")}
+              {user?.role && (
+                <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                  Role: {user.role}
+                </span>
+              )}
+            </p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-gray-800">
-            DRC Chair Dashboard
-          </h1>
-          <p className="text-gray-600 mt-1">
-            Department:{" "}
-            {departmentCode ||
-              (scholarsLoading ? "Loading..." : "Not available")}{" "}
-            | Welcome,{" "}
-            {user?.name ||
-              user?.username ||
-              (scholarsLoading ? "Loading..." : "Not available")}
-            {user?.role && (
-              <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-                Role: {user.role}
-              </span>
-            )}
-          </p>
+
+        {/* Notification Dropdown */}
+        <div className="flex items-center gap-4">
+          <NotificationDropdown />
         </div>
       </div>
 
