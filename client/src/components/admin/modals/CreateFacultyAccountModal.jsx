@@ -17,12 +17,17 @@ const CreateFacultyAccountModal = ({ isOpen, faculty, onClose, onSubmit }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!formData.username) {
+    const username = formData.username || faculty.employeeCode;
+    if (!username) {
+      return;
+    }
+    if (!formData.tempPassword) {
       return;
     }
     onSubmit({
       facultyId: faculty._id,
-      ...formData,
+      username,
+      tempPassword: formData.tempPassword,
     });
   };
 
@@ -34,8 +39,8 @@ const CreateFacultyAccountModal = ({ isOpen, faculty, onClose, onSubmit }) => {
   if (!isOpen || !faculty) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div className="relative w-full max-w-md mx-auto p-0 bg-white/70 backdrop-blur-lg rounded-3xl shadow-2xl animate-modalIn border border-white/30">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+      <div className="relative w-full max-w-md mx-auto p-0 bg-white rounded-3xl shadow-2xl border border-gray-300">
         <div className="absolute -top-10 left-1/2 -translate-x-1/2 flex items-center justify-center w-20 h-20 bg-gradient-to-tr from-orange-500 to-red-400 rounded-full shadow-lg border-4 border-white/60">
           <HiUser className="w-10 h-10 text-white" />
         </div>

@@ -198,10 +198,10 @@ const FacultyCard = ({
           )}
         </div>
         <div className="flex items-center space-x-2">
-          {!faculty.hasUserAccount && onCreateAccount && (
+          {onCreateAccount && (
             <button
               onClick={() => onCreateAccount(faculty)}
-              className="p-2 text-orange-600 hover:text-orange-700 hover:bg-orange-50 rounded-lg transition-all duration-200 border border-transparent hover:border-orange-200"
+              className="p-2 text-orange-600 hover:text-orange-700 hover:bg-orange-50 rounded-lg transition-all duration-200 border border-orange-200 bg-orange-50"
               title="Create User Account"
             >
               <HiUserAdd className="w-4 h-4" />

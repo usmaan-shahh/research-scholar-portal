@@ -357,7 +357,7 @@ const FacultySection = ({
               onEdit={() => handleFacultyEdit(faculty)}
               onDelete={() => handleFacultyDelete(faculty._id)}
               onCreateAccount={() => handleCreateAccount(faculty)}
-              canCreateAccount={!faculty.userAccount}
+              canCreateAccount={!faculty.hasUserAccount}
             />
           ))}
         </div>
