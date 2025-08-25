@@ -4,9 +4,12 @@ import {
   useMarkNotificationAsReadMutation,
   useMarkAllNotificationsAsReadMutation,
 } from "../../apiSlices/notificationApi";
+import NotificationPopup from "./NotificationPopup";
 
 const NotificationDropdown = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [selectedNotification, setSelectedNotification] = useState(null);
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
   const dropdownRef = useRef(null);
   const { data: notificationData, refetch } = useGetUserNotificationsQuery();
   const [markAsRead] = useMarkNotificationAsReadMutation();
@@ -40,7 +43,7 @@ const NotificationDropdown = () => {
     try {
       console.log("🔔 Frontend: Marking notification as read:", notificationId);
       console.log("🔔 Frontend: Making API call...");
-      
+
       const result = await markAsRead(notificationId);
       console.log("🔔 Frontend: Mark as read result:", result);
       refetch();
@@ -49,7 +52,7 @@ const NotificationDropdown = () => {
       console.error("🔔 Frontend: Error details:", {
         message: error.message,
         status: error.status,
-        data: error.data
+        data: error.data,
       });
     }
   };
@@ -61,6 +64,17 @@ const NotificationDropdown = () => {
     } catch (error) {
       console.error("Error marking all notifications as read:", error);
     }
+  };
+
+  const handleNotificationClick = (notification) => {
+    setSelectedNotification(notification);
+    setIsPopupOpen(true);
+    setIsOpen(false); // Close dropdown when opening popup
+  };
+
+  const handleClosePopup = () => {
+    setIsPopupOpen(false);
+    setSelectedNotification(null);
   };
 
   const formatTimeAgo = (timestamp) => {
@@ -83,17 +97,6 @@ const NotificationDropdown = () => {
         return "📅";
       default:
         return "🔔";
-    }
-  };
-
-  const getNotificationColor = (type) => {
-    switch (type) {
-      case "supervisor_assigned":
-        return "bg-blue-50 border-blue-200";
-      case "drc_meeting_attendee":
-        return "bg-green-50 border-green-200";
-      default:
-        return "bg-gray-50 border-gray-200";
     }
   };
 
@@ -181,9 +184,10 @@ const NotificationDropdown = () => {
               notifications.map((notification) => (
                 <div
                   key={notification._id}
-                  className={`px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors duration-200 ${
+                  className={`px-4 py-3 border-b border-gray-100 hover:bg-gray-50 hover:shadow-sm transition-all duration-200 cursor-pointer ${
                     !notification.isRead ? "bg-blue-50" : ""
                   }`}
+                  onClick={() => handleNotificationClick(notification)}
                 >
                   <div className="flex items-start space-x-3">
                     <div className="text-2xl">
@@ -201,6 +205,24 @@ const NotificationDropdown = () => {
                       <p className="text-sm text-gray-600 mt-1 line-clamp-2">
                         {notification.message}
                       </p>
+                      <div className="flex items-center justify-between mt-2">
+                        <span className="text-xs text-gray-400 flex items-center">
+                          Click to view details
+                          <svg
+                            className="w-3 h-3 ml-1"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M9 5l7 7-7 7"
+                            />
+                          </svg>
+                        </span>
+                      </div>
 
                       {/* Related Info */}
                       {notification.relatedScholar && (
@@ -211,8 +233,35 @@ const NotificationDropdown = () => {
                       )}
 
                       {notification.relatedMeeting && (
-                        <div className="mt-2 text-xs text-gray-500">
-                          Meeting: {notification.relatedMeeting.title}
+                        <div className="mt-2 text-xs text-gray-500 space-y-1">
+                          <div>
+                            Details: {notification.relatedMeeting.title}
+                          </div>
+                          {notification.relatedMeeting.venue && (
+                            <div>
+                              Venue: {notification.relatedMeeting.venue}
+                            </div>
+                          )}
+                          {notification.relatedMeeting.date && (
+                            <div>
+                              Date:{" "}
+                              {new Date(
+                                notification.relatedMeeting.date
+                              ).toLocaleDateString("en-US", {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              })}
+                            </div>
+                          )}
+                          {notification.relatedMeeting.time && (
+                            <div>Time: {notification.relatedMeeting.time}</div>
+                          )}
+                          {notification.relatedMeeting.meetingType && (
+                            <div>
+                              Type: {notification.relatedMeeting.meetingType}
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -220,8 +269,11 @@ const NotificationDropdown = () => {
                     {/* Mark as Read Button */}
                     {!notification.isRead && (
                       <button
-                        onClick={() => handleMarkAsRead(notification._id)}
-                        className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                        onClick={(e) => {
+                          e.stopPropagation(); // Prevent notification click when clicking mark as read
+                          handleMarkAsRead(notification._id);
+                        }}
+                        className="text-xs text-blue-600 hover:text-blue-800 font-medium hover:underline"
                       >
                         Mark read
                       </button>
@@ -245,6 +297,13 @@ const NotificationDropdown = () => {
           )}
         </div>
       )}
+
+      {/* Notification Popup */}
+      <NotificationPopup
+        notification={selectedNotification}
+        isOpen={isPopupOpen}
+        onClose={handleClosePopup}
+      />
     </div>
   );
 };
