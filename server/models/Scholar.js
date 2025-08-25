@@ -100,6 +100,15 @@ const scholarSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    hasUserAccount: {
+      type: Boolean,
+      default: false,
+    },
+    userAccountId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: false,
+    },
   },
   { timestamps: true }
 );

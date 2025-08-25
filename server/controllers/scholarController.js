@@ -6,6 +6,8 @@ import {
   refreshFacultySupervisionData,
 } from "../utils/supervisionValidation.js";
 import { createSupervisorAssignmentNotification } from "./notificationController.js";
+import User from "../models/User.js"; // Added import for User model
+import jwt from "jsonwebtoken"; // Added import for jwt
 
 // Helper function to create supervisor assignment notifications
 const createSupervisorAssignmentNotifications = async (
@@ -233,12 +235,14 @@ export const createScholar = async (req, res) => {
 // Get all Scholars (with optional filters)
 export const getScholars = async (req, res) => {
   try {
-    const { departmentCode, isActive, supervisor, coSupervisor } = req.query;
+    const { departmentCode, isActive, supervisor, coSupervisor, email } =
+      req.query;
     let filter = {};
 
     if (departmentCode) filter.departmentCode = departmentCode;
     if (isActive !== undefined && isActive !== "")
       filter.isActive = isActive === "true";
+    if (email) filter.email = email;
 
     // Handle supervisor and coSupervisor filtering
     if (supervisor && supervisor !== "") {
@@ -268,11 +272,21 @@ export const getScholars = async (req, res) => {
       }
     }
 
+    // For scholar role, they can only see their own data
+    if (req.user?.role === "scholar") {
+      // If email is provided in query, use it; otherwise, use the logged-in user's email
+      if (!email) {
+        filter.email = req.user.email;
+      }
+      // Scholars can only see their own data, so no additional filtering needed
+    }
+
     console.log("Backend filter:", filter);
     console.log("User role:", req.user?.role);
     console.log("User department:", req.user?.departmentCode);
     console.log("User ID:", req.user?._id);
     console.log("Query params:", req.query);
+    console.log("Email filter:", email);
     console.log("Supervisor filter:", supervisor);
     console.log("CoSupervisor filter:", coSupervisor);
     console.log("Final MongoDB filter:", JSON.stringify(filter, null, 2));
@@ -679,5 +693,98 @@ export const getScholarsCount = async (req, res) => {
     res.json({ count });
   } catch (err) {
     res.status(500).json({ message: err.message });
+  }
+};
+
+// Create User Account for Existing Scholar
+export const createUserAccountForExistingScholar = async (req, res) => {
+  try {
+    const { scholarId, username, password } = req.body;
+
+    // Check if scholar exists
+    const existingScholar = await Scholar.findById(scholarId);
+    if (!existingScholar) {
+      return res.status(404).json({ message: "Scholar not found" });
+    }
+
+    // Check if scholar already has a user account
+    if (existingScholar.hasUserAccount) {
+      return res
+        .status(400)
+        .json({ message: "Scholar already has a user account" });
+    }
+
+    // Check if username already exists
+    const existingUser = await User.findOne({ username });
+    if (existingUser) {
+      return res.status(400).json({ message: "Username already exists" });
+    }
+
+    // Create user account
+    const user = new User({
+      name: existingScholar.name,
+      email: existingScholar.email,
+      username,
+      password,
+      role: "scholar",
+      department: existingScholar.departmentCode,
+      departmentCode: existingScholar.departmentCode,
+      mustChangePassword: true, // Force password change on first login
+    });
+
+    const savedUser = await user.save();
+
+    // Update scholar to mark as having user account
+    await Scholar.findByIdAndUpdate(scholarId, {
+      hasUserAccount: true,
+      userAccountId: savedUser._id,
+    });
+
+    // Generate token for the new user
+    const token = jwt.sign({ userId: savedUser._id }, process.env.JWT_SECRET, {
+      expiresIn: "30d",
+    });
+
+    // Set cookie
+    res.cookie("jwt", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+    });
+
+    // Send response
+    res.status(201).json({
+      message: "User account created successfully for existing scholar",
+      user: {
+        _id: savedUser._id,
+        name: savedUser.name,
+        email: savedUser.email,
+        username: savedUser.username,
+        role: savedUser.role,
+        department: savedUser.department,
+        departmentCode: savedUser.departmentCode,
+        mustChangePassword: savedUser.mustChangePassword,
+      },
+      scholar: {
+        _id: existingScholar._id,
+        name: existingScholar.name,
+        rollNo: existingScholar.rollNo,
+        regId: existingScholar.regId,
+        departmentCode: existingScholar.departmentCode,
+      },
+      token,
+    });
+  } catch (error) {
+    if (error.name === "ValidationError") {
+      return res.status(400).json({
+        message: "Validation failed",
+        errors: Object.values(error.errors).map((err) => err.message),
+      });
+    }
+    console.error("Error creating user account for existing scholar:", error);
+    res
+      .status(500)
+      .json({ message: "Error creating user account for existing scholar" });
   }
 };

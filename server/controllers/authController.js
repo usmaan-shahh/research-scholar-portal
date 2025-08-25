@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
+import Scholar from "../models/Scholar.js";
 import bcrypt from "bcryptjs";
 
 const generateToken = (userId) => {
@@ -149,5 +150,138 @@ export const changePassword = async (req, res) => {
     return res.status(200).json({ message: "Password changed successfully" });
   } catch (error) {
     return res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const createScholarAccount = async (req, res) => {
+  try {
+    const {
+      name,
+      email,
+      phone,
+      address,
+      rollNo,
+      pgDegree,
+      pgCgpa,
+      bgDegree,
+      bgCgpa,
+      regId,
+      dateOfAdmission,
+      dateOfJoining,
+      areaOfResearch,
+      synopsisTitle,
+      departmentCode,
+      username,
+      password,
+    } = req.body;
+
+    // Check if user exists by email or username
+    const existingUser = await User.findOne({
+      $or: [{ email }, { username }],
+    });
+    if (existingUser) {
+      return res.status(400).json({
+        message: "User with this email or username already exists",
+      });
+    }
+
+    // Check if scholar profile exists by rollNo, regId, or email
+    const existingScholar = await Scholar.findOne({
+      $or: [{ rollNo }, { regId }, { email }],
+    });
+    if (existingScholar) {
+      return res.status(400).json({
+        message:
+          "Scholar profile with this roll number, registration ID, or email already exists",
+      });
+    }
+
+    // Create user account
+    const user = new User({
+      name,
+      email,
+      username,
+      password,
+      role: "scholar",
+      department: departmentCode,
+      departmentCode,
+      mustChangePassword: true, // Force password change on first login
+    });
+
+    const savedUser = await user.save();
+
+    // Create scholar profile
+    const scholar = new Scholar({
+      name,
+      email,
+      phone,
+      address,
+      rollNo,
+      pgDegree,
+      pgCgpa,
+      bgDegree,
+      bgCgpa,
+      regId,
+      dateOfAdmission,
+      dateOfJoining,
+      areaOfResearch,
+      synopsisTitle,
+      departmentCode,
+      supervisor: null, // Will be assigned later
+      coSupervisor: null, // Will be assigned later
+      hasUserAccount: true, // Mark as having user account
+      userAccountId: savedUser._id, // Link to user account
+    });
+
+    const savedScholar = await scholar.save();
+
+    // Update the scholar to mark it as having a user account
+    await Scholar.findByIdAndUpdate(savedScholar._id, {
+      hasUserAccount: true,
+      userAccountId: savedUser._id,
+    });
+
+    // Generate token for the new user
+    const token = generateToken(savedUser._id);
+
+    // Set cookie
+    res.cookie("jwt", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+    });
+
+    // Send response
+    res.status(201).json({
+      message: "Scholar account created successfully",
+      user: {
+        _id: savedUser._id,
+        name: savedUser.name,
+        email: savedUser.email,
+        username: savedUser.username,
+        role: savedUser.role,
+        department: savedUser.department,
+        departmentCode: savedUser.departmentCode,
+        mustChangePassword: savedUser.mustChangePassword,
+      },
+      scholar: {
+        _id: savedScholar._id,
+        name: savedScholar.name,
+        rollNo: savedScholar.rollNo,
+        regId: savedScholar.regId,
+        departmentCode: savedScholar.departmentCode,
+      },
+      token,
+    });
+  } catch (error) {
+    if (error.name === "ValidationError") {
+      return res.status(400).json({
+        message: "Validation failed",
+        errors: Object.values(error.errors).map((err) => err.message),
+      });
+    }
+    console.error("Error creating scholar account:", error);
+    res.status(500).json({ message: "Error creating scholar account" });
   }
 };

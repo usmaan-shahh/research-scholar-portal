@@ -9,6 +9,7 @@ import AdminDashboard from "./components/admin/AdminDashboard";
 import OfficeStaffDashboard from "./components/dashboards/OfficeStaffDashboard";
 import DRCChairDashboard from "./components/dashboards/DRCChairDashboard";
 import FacultyDashboard from "./components/dashboards/FacultyDashboard";
+import ScholarDashboard from "./components/dashboards/ScholarDashboard";
 import Login from "./components/auth/Login";
 import ChangePassword from "./components/auth/ChangePassword";
 
@@ -31,6 +32,7 @@ function App() {
                   "main_office",
                   "office_staff",
                   "supervisor",
+                  "scholar",
                 ]}
               >
                 <ChangePassword />
@@ -63,6 +65,16 @@ function App() {
             element={
               <PrivateRoute allowedRoles={["supervisor"]}>
                 <FacultyDashboard />
+              </PrivateRoute>
+            }
+          />
+
+          {/* Scholar Dashboard Route */}
+          <Route
+            path="/scholar/*"
+            element={
+              <PrivateRoute allowedRoles={["scholar"]}>
+                <ScholarDashboard />
               </PrivateRoute>
             }
           />

@@ -25,11 +25,21 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log("Login form submitted, preventing default");
     setError("");
     setIsLoading(true);
 
     try {
+      console.log("Attempting login with:", formData);
       const userData = await login(formData).unwrap();
+      console.log("Login successful, userData:", userData);
+      
+      if (!userData || !userData.role) {
+        console.error("Invalid user data received:", userData);
+        setError("Invalid response from server");
+        return;
+      }
+      
       dispatch(setCredentials(userData));
 
       // Check if user needs to change password
@@ -51,8 +61,12 @@ const Login = () => {
         main_office: "/office-staff",
       };
 
-      navigate(roleRoutes[userData.role] || "/login");
+      console.log("Navigating to role route:", roleRoutes[userData.role]);
+      console.log("About to navigate to:", roleRoutes[userData.role]);
+      const result = navigate(roleRoutes[userData.role] || "/login");
+      console.log("Navigation result:", result);
     } catch (err) {
+      console.error("Login error:", err);
       setError(
         err.data?.message ||
           "Login failed. Please check your credentials and try again."

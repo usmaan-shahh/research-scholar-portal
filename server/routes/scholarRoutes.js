@@ -7,6 +7,7 @@ import {
   updateScholar,
   deleteScholar,
   getScholarsCount,
+  createUserAccountForExistingScholar,
 } from "../controllers/scholarController.js";
 import { protect, authorize } from "../middleware/authMiddleware.js";
 
@@ -20,6 +21,12 @@ router.post(
   "/",
   authorize(["admin", "main_office", "drc_chair"]),
   createScholar
+);
+
+router.post(
+  "/create-user-account",
+  authorize(["admin", "main_office", "drc_chair"]),
+  createUserAccountForExistingScholar
 );
 
 router.get(

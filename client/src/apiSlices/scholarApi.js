@@ -52,6 +52,14 @@ export const scholarApi = createApi({
       }),
       invalidatesTags: ["Scholar"],
     }),
+    createUserAccountForExistingScholar: builder.mutation({
+      query: (data) => ({
+        url: "/create-user-account",
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ["Scholar"],
+    }),
   }),
 });
 
@@ -62,4 +70,5 @@ export const {
   useCreateScholarMutation,
   useUpdateScholarMutation,
   useDeleteScholarMutation,
+  useCreateUserAccountForExistingScholarMutation,
 } = scholarApi;

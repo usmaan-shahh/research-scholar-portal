@@ -3,11 +3,15 @@ import { useSelector } from "react-redux";
 import FacultySection from "../admin/sections/FacultySection";
 import ScholarsSection from "../admin/sections/ScholarsSection";
 import NotificationDropdown from "../notifications/NotificationDropdown";
+import CreateScholarAccountModal from "../admin/modals/CreateScholarAccountModal";
+import CreateScholarAccountFromExistingModal from "../admin/modals/CreateScholarAccountFromExistingModal";
 
 const OfficeStaffDashboard = () => {
   const { user } = useSelector((state) => state.auth);
   const departmentCode = user?.departmentCode || "";
   const [activeTab, setActiveTab] = useState("faculty");
+  const [showCreateScholarModal, setShowCreateScholarModal] = useState(false);
+  const [showCreateFromExistingModal, setShowCreateFromExistingModal] = useState(false);
 
   const TABS = {
     faculty: {
@@ -52,9 +56,25 @@ const OfficeStaffDashboard = () => {
                 </span>{" "}
                 department with comprehensive faculty and scholar oversight
               </p>
-              <div className="mt-4 inline-flex items-center px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-                <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
-                Main Office User Access
+              <div className="mt-4 flex items-center justify-center space-x-4">
+                <div className="inline-flex items-center px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                  <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                  Main Office User Access
+                </div>
+                <button
+                  onClick={() => setShowCreateScholarModal(true)}
+                  className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors duration-200"
+                >
+                  <span className="mr-2">🎓</span>
+                  Create New Scholar
+                </button>
+                <button
+                  onClick={() => setShowCreateFromExistingModal(true)}
+                  className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200"
+                >
+                  <span className="mr-2">👤</span>
+                  Account for Existing Scholar
+                </button>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -86,6 +106,26 @@ const OfficeStaffDashboard = () => {
         {/* Tab Content - Matching Admin Dashboard Layout */}
         <div className="space-y-8">{TABS[activeTab].component}</div>
       </div>
+
+      {/* Create Scholar Account Modal */}
+      <CreateScholarAccountModal
+        isOpen={showCreateScholarModal}
+        onClose={() => setShowCreateScholarModal(false)}
+        onSuccess={(result) => {
+          console.log("Scholar account created:", result);
+          // You can add additional logic here if needed
+        }}
+      />
+
+      {/* Create Account for Existing Scholar Modal */}
+      <CreateScholarAccountFromExistingModal
+        isOpen={showCreateFromExistingModal}
+        onClose={() => setShowCreateFromExistingModal(false)}
+        onSuccess={(result) => {
+          console.log("Account created for existing scholar:", result);
+          // You can add additional logic here if needed
+        }}
+      />
     </div>
   );
 };
