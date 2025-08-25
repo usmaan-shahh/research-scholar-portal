@@ -5,6 +5,7 @@ import { useChangePasswordMutation } from "../../apiSlices/userApi";
 import { updateUserField } from "../../slices/authSlice";
 import { toast } from "react-toastify";
 import { HiLockClosed, HiEye, HiEyeOff } from "react-icons/hi";
+import LogoutButton from "../common/LogoutButton";
 
 const ChangePassword = () => {
   const navigate = useNavigate();
@@ -245,6 +246,11 @@ const ChangePassword = () => {
               <strong>Note:</strong> After changing your password, you'll be
               redirected to your dashboard.
             </p>
+          </div>
+
+          {/* Logout Option */}
+          <div className="mt-4 text-center">
+            <LogoutButton variant="minimal" className="text-sm" />
           </div>
         </div>
       </div>
