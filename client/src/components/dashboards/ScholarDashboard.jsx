@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { useGetScholarsQuery } from "../../apiSlices/scholarApi";
+import LogoutButton from "../common/LogoutButton";
 import {
   HiAcademicCap,
   HiUser,
@@ -153,16 +154,19 @@ const ScholarDashboard = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center space-x-3">
-            <div className="bg-blue-100 p-3 rounded-full">
-              <HiAcademicCap className="h-8 w-8 text-blue-600" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="bg-blue-100 p-3 rounded-full">
+                <HiAcademicCap className="h-8 w-8 text-blue-600" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">
+                  Scholar Dashboard
+                </h1>
+                <p className="text-gray-600">Welcome back, {scholarData.name}</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                Scholar Dashboard
-              </h1>
-              <p className="text-gray-600">Welcome back, {scholarData.name}</p>
-            </div>
+            <LogoutButton variant="outline" />
           </div>
         </div>
 

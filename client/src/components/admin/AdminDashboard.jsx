@@ -3,6 +3,7 @@ import { FaUniversity } from "react-icons/fa";
 import DepartmentSection from "./sections/DepartmentSection";
 import UserManagementSection from "./sections/UserManagementSection";
 import NotificationDropdown from "../notifications/NotificationDropdown";
+import LogoutButton from "../common/LogoutButton";
 
 const TABS = {
   DEPARTMENTS: "Department Section",
@@ -26,6 +27,7 @@ const AdminDashboard = () => {
         </div>
         <div className="flex items-center gap-3">
           <NotificationDropdown />
+          <LogoutButton variant="outline" />
         </div>
       </div>
 

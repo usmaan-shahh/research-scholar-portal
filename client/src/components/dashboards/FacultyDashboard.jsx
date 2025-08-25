@@ -13,6 +13,7 @@ import { useGetScholarsQuery } from "../../apiSlices/scholarApi";
 import { useGetFacultyByUserIdQuery } from "../../apiSlices/facultyApi";
 import FacultyScholarCard from "./FacultyScholarCard";
 import NotificationDropdown from "../notifications/NotificationDropdown";
+import LogoutButton from "../common/LogoutButton";
 
 const TABS = {
   SUPERVISION: "Supervision",
@@ -229,6 +230,7 @@ const FacultyDashboard = () => {
               >
                 Refresh Data
               </button>
+              <LogoutButton variant="outline" />
             </div>
           </div>
         </div>

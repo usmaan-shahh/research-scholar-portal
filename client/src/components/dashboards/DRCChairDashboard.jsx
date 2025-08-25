@@ -14,6 +14,7 @@ import ScholarsSection from "../admin/sections/ScholarsSection";
 import SupervisorAssignmentModal from "../admin/modals/SupervisorAssignmentModal";
 import DRCMeetingsDashboard from "../drc-meetings/DRCMeetingsDashboard";
 import NotificationDropdown from "../notifications/NotificationDropdown";
+import LogoutButton from "../common/LogoutButton";
 
 const TABS = {
   SCHOLARS_AND_ASSIGNMENTS: "Scholars & Assignments",
@@ -143,6 +144,7 @@ const DRCChairDashboard = () => {
         </div>
         <div className="flex items-center gap-3">
           <NotificationDropdown />
+          <LogoutButton variant="outline" />
         </div>
       </div>
 
