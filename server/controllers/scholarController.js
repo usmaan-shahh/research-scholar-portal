@@ -1,11 +1,11 @@
 import Scholar from "../models/Scholar.js";
 import Faculty from "../models/Faculty.js";
 import Department from "../models/Department.js";
-import Notification from "../models/Notification.js";
 import {
   validateSupervisorAssignment,
   refreshFacultySupervisionData,
 } from "../utils/supervisionValidation.js";
+import { createSupervisorAssignmentNotification } from "./notificationController.js";
 
 // Helper function to create supervisor assignment notifications
 const createSupervisorAssignmentNotifications = async (
@@ -14,122 +14,58 @@ const createSupervisorAssignmentNotifications = async (
   newSupervisor,
   oldCoSupervisor,
   newCoSupervisor,
-  departmentCode
+  departmentCode,
+  createdBy
 ) => {
   try {
-    const notifications = [];
+    // Only create notifications for CS department
+    if (departmentCode !== "CS") {
+      console.log(
+        "Skipping notifications for non-CS department:",
+        departmentCode
+      );
+      return;
+    }
 
-    // Get faculty members to find their user account IDs
-    const facultyIds = [];
-    if (newSupervisor) facultyIds.push(newSupervisor);
-    if (oldSupervisor) facultyIds.push(oldSupervisor);
-    if (newCoSupervisor) facultyIds.push(newCoSupervisor);
-    if (oldCoSupervisor) facultyIds.push(oldCoSupervisor);
-
-    console.log(
-      "Creating supervisor notifications for faculty IDs:",
-      facultyIds
-    );
-
-    const faculties = await Faculty.find({ _id: { $in: facultyIds } }).populate(
-      "userAccountId"
-    );
-    console.log(
-      "Found faculties:",
-      faculties.map((f) => ({
-        id: f._id,
-        name: f.name,
-        userAccountId: f.userAccountId?._id,
-      }))
-    );
-
-    const facultyMap = new Map(
-      faculties.map((f) => [f._id.toString(), f.userAccountId?._id])
-    );
-    console.log("Faculty map:", Object.fromEntries(facultyMap));
-
-    // Supervisor assignment notifications
+    // Notify new supervisor
     if (newSupervisor && newSupervisor !== oldSupervisor) {
-      const userAccountId = facultyMap.get(newSupervisor.toString());
-      if (userAccountId) {
-        // Notify new supervisor
-        const supervisorNotification = new Notification({
-          recipient: userAccountId,
-          type: "supervisor_assigned",
-          title: "New Scholar Assignment",
-          message: `You have been assigned as the supervisor for ${scholar.name} (${scholar.rollNo}).`,
-          departmentCode,
-          priority: "medium",
-        });
-        notifications.push(supervisorNotification.save());
+      try {
+        await createSupervisorAssignmentNotification(
+          newSupervisor,
+          scholar._id,
+          createdBy
+        );
+        console.log(
+          `Supervisor assignment notification created for faculty ${newSupervisor}`
+        );
+      } catch (error) {
+        console.error(
+          "Error creating supervisor assignment notification:",
+          error
+        );
       }
     }
 
-    if (oldSupervisor && oldSupervisor !== newSupervisor) {
-      const userAccountId = facultyMap.get(oldSupervisor.toString());
-      if (userAccountId) {
-        // Notify old supervisor about removal
-        const removalNotification = new Notification({
-          recipient: userAccountId,
-          type: "supervisor_removed",
-          title: "Scholar Assignment Removed",
-          message: `Your supervision assignment for ${scholar.name} (${scholar.rollNo}) has been removed.`,
-          departmentCode,
-          priority: "medium",
-        });
-        notifications.push(removalNotification.save());
-      }
-    }
-
-    // Co-supervisor assignment notifications
+    // Notify new co-supervisor
     if (newCoSupervisor && newCoSupervisor !== oldCoSupervisor) {
-      const userAccountId = facultyMap.get(newCoSupervisor.toString());
-      if (userAccountId) {
-        // Notify new co-supervisor
-        const coSupervisorNotification = new Notification({
-          recipient: userAccountId,
-          type: "co_supervisor_assigned",
-          title: "New Co-Supervisor Assignment",
-          message: `You have been assigned as the co-supervisor for ${scholar.name} (${scholar.rollNo}).`,
-          departmentCode,
-          priority: "medium",
-        });
-        notifications.push(coSupervisorNotification.save());
+      try {
+        await createSupervisorAssignmentNotification(
+          newCoSupervisor,
+          scholar._id,
+          createdBy
+        );
+        console.log(
+          `Co-supervisor assignment notification created for faculty ${newCoSupervisor}`
+        );
+      } catch (error) {
+        console.error(
+          "Error creating co-supervisor assignment notification:",
+          error
+        );
       }
     }
 
-    if (oldCoSupervisor && oldCoSupervisor !== newCoSupervisor) {
-      const userAccountId = facultyMap.get(oldCoSupervisor.toString());
-      if (userAccountId) {
-        // Notify old co-supervisor about removal
-        const coRemovalNotification = new Notification({
-          recipient: userAccountId,
-          type: "co_supervisor_removed",
-          title: "Co-Supervisor Assignment Removed",
-          message: `Your co-supervision assignment for ${scholar.name} (${scholar.rollNo}) has been removed.`,
-          departmentCode,
-          priority: "medium",
-        });
-        notifications.push(coRemovalNotification.save());
-      }
-    }
-
-    if (notifications.length > 0) {
-      await Promise.all(notifications);
-      console.log(
-        `Created ${notifications.length} supervisor assignment notifications`
-      );
-      console.log(
-        "Notification details:",
-        notifications.map((n) => ({
-          recipient: n.recipient,
-          type: n.type,
-          title: n.title,
-        }))
-      );
-    } else {
-      console.log("No supervisor assignment notifications created");
-    }
+    console.log("Supervisor assignment notifications completed");
   } catch (error) {
     console.error("Error creating supervisor assignment notifications:", error);
     // Don't fail the scholar operation if notifications fail
@@ -271,7 +207,8 @@ export const createScholar = async (req, res) => {
         scholar.supervisor, // newSupervisor
         null, // oldCoSupervisor
         scholar.coSupervisor, // newCoSupervisor
-        scholar.departmentCode
+        scholar.departmentCode,
+        req.user._id // createdBy
       );
     }
 
@@ -634,7 +571,8 @@ export const updateScholar = async (req, res) => {
       finalSupervisor,
       existingScholar.coSupervisor,
       finalCoSupervisor,
-      scholar.departmentCode
+      scholar.departmentCode,
+      req.user._id // createdBy
     );
 
     res.json(scholar);
@@ -684,7 +622,8 @@ export const deleteScholar = async (req, res) => {
           scholar.supervisor, // newSupervisor
           null, // oldCoSupervisor
           scholar.coSupervisor, // newCoSupervisor
-          scholar.departmentCode
+          scholar.departmentCode,
+          req.user._id // createdBy
         );
       }
 

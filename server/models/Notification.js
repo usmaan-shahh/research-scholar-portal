@@ -9,16 +9,7 @@ const notificationSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: [
-        "meeting_invitation",
-        "meeting_update",
-        "meeting_cancelled",
-        "minutes_uploaded",
-        "supervisor_assigned",
-        "supervisor_removed",
-        "co_supervisor_assigned",
-        "co_supervisor_removed",
-      ],
+      enum: ["supervisor_assigned", "drc_meeting_attendee"],
       required: true,
     },
     title: {
@@ -30,6 +21,11 @@ const notificationSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
+    },
+    relatedScholar: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Scholar",
+      required: false,
     },
     relatedMeeting: {
       type: mongoose.Schema.Types.ObjectId,
@@ -43,16 +39,12 @@ const notificationSchema = new mongoose.Schema(
     departmentCode: {
       type: String,
       required: true,
-      ref: "Department",
+      default: "CS", // CS department only
     },
-    priority: {
-      type: String,
-      enum: ["low", "medium", "high"],
-      default: "medium",
-    },
-    scheduledFor: {
-      type: Date,
-      required: false,
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
     },
   },
   {
@@ -65,7 +57,6 @@ const notificationSchema = new mongoose.Schema(
 // Index for efficient queries
 notificationSchema.index({ recipient: 1, isRead: 1 });
 notificationSchema.index({ departmentCode: 1, createdAt: -1 });
-notificationSchema.index({ scheduledFor: 1, isRead: 1 });
 
 // Virtual for time ago
 notificationSchema.virtual("timeAgo").get(function () {
@@ -81,12 +72,6 @@ notificationSchema.virtual("timeAgo").get(function () {
 // Method to mark as read
 notificationSchema.methods.markAsRead = function () {
   this.isRead = true;
-  return this.save();
-};
-
-// Method to mark as unread
-notificationSchema.methods.markAsUnread = function () {
-  this.isRead = false;
   return this.save();
 };
 

@@ -1,10 +1,11 @@
 import DRCMeeting from "../models/DRCMeeting.js";
 import User from "../models/User.js";
+import Faculty from "../models/Faculty.js";
 import Department from "../models/Department.js";
-import Notification from "../models/Notification.js";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { createDRCMeetingAttendeeNotification } from "./notificationController.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -48,55 +49,54 @@ const createMeetingNotifications = async (
   meeting,
   attendees,
   departmentCode,
-  type = "meeting_invitation"
+  type = "meeting_invitation",
+  createdBy
 ) => {
   try {
     if (!attendees || attendees.length === 0) return;
 
-    let title, message;
-
-    switch (type) {
-      case "meeting_invitation":
-        title = "New DRC Meeting Invitation";
-        message = `You have been invited to attend: ${
-          meeting.title
-        } on ${new Date(meeting.date).toLocaleDateString()} at ${
-          meeting.time
-        } in ${meeting.venue}`;
-        break;
-      case "meeting_update":
-        title = "DRC Meeting Updated";
-        message = `The meeting "${meeting.title}" has been updated. Please check the new details.`;
-        break;
-      case "meeting_cancelled":
-        title = "DRC Meeting Cancelled";
-        message = `The meeting "${meeting.title}" scheduled for ${new Date(
-          meeting.date
-        ).toLocaleDateString()} has been cancelled.`;
-        break;
-      default:
-        title = "DRC Meeting Notification";
-        message = `You have a notification regarding: ${meeting.title}`;
+    // Only create notifications for CS department
+    if (departmentCode !== "CS") {
+      console.log(
+        "Skipping notifications for non-CS department:",
+        departmentCode
+      );
+      return;
     }
 
-    const notificationPromises = attendees.map(async (attendeeId) => {
-      const notification = new Notification({
-        recipient: attendeeId,
-        type,
-        title,
-        message,
-        relatedMeeting: meeting._id,
-        departmentCode,
-        priority: type === "meeting_cancelled" ? "high" : "medium",
-        scheduledFor: meeting.date,
-      });
-
-      return notification.save();
+    // Get faculty members from attendees
+    const facultyUsers = await User.find({
+      _id: { $in: attendees },
+      role: "supervisor",
+      departmentCode: "CS",
     });
 
-    await Promise.all(notificationPromises);
+    console.log(`Found ${facultyUsers.length} CS department faculty attendees`);
+
+    // Create notifications for each CS faculty attendee
+    for (const facultyUser of facultyUsers) {
+      try {
+        // Find the faculty record to get facultyId
+        const faculty = await Faculty.findOne({
+          userAccountId: facultyUser._id,
+        });
+        if (faculty) {
+          await createDRCMeetingAttendeeNotification(
+            faculty._id,
+            meeting._id,
+            createdBy
+          );
+        }
+      } catch (error) {
+        console.error(
+          `Error creating notification for faculty ${facultyUser._id}:`,
+          error
+        );
+      }
+    }
+
     console.log(
-      `Created ${type} notifications for ${attendees.length} attendees`
+      `Created DRC meeting notifications for CS department faculty attendees`
     );
   } catch (error) {
     console.error("Error creating meeting notifications:", error);
@@ -194,7 +194,13 @@ export const createMeeting = async (req, res) => {
     await meeting.save();
 
     // Create notifications for attendees
-    await createMeetingNotifications(meeting, validAttendeeIds, departmentCode);
+    await createMeetingNotifications(
+      meeting,
+      validAttendeeIds,
+      departmentCode,
+      "meeting_invitation",
+      req.user._id
+    );
 
     // Populate references
     await meeting.populate([
@@ -510,7 +516,8 @@ export const deleteMeeting = async (req, res) => {
           meeting,
           meeting.attendees,
           meeting.departmentCode,
-          "meeting_cancelled"
+          "meeting_cancelled",
+          req.user._id
         );
       }
 
@@ -579,28 +586,13 @@ export const uploadMinutes = async (req, res) => {
 
     // Create notifications for attendees about the minutes upload
     if (meeting.attendees && meeting.attendees.length > 0) {
-      const notificationPromises = meeting.attendees.map(async (attendeeId) => {
-        const notification = new Notification({
-          recipient: attendeeId,
-          type: "minutes_uploaded",
-          title: "Meeting Minutes Uploaded",
-          message: `Minutes for the meeting "${meeting.title}" have been uploaded and are now available for download.`,
-          relatedMeeting: meeting._id,
-          departmentCode: meeting.departmentCode,
-          priority: "medium",
-        });
-
-        return notification.save();
-      });
-
-      try {
-        await Promise.all(notificationPromises);
-        console.log(
-          `Created minutes upload notifications for ${meeting.attendees.length} attendees`
-        );
-      } catch (error) {
-        console.error("Error creating minutes upload notifications:", error);
-      }
+      await createMeetingNotifications(
+        meeting,
+        meeting.attendees,
+        meeting.departmentCode,
+        "meeting_update",
+        req.user._id
+      );
     }
 
     res.json({

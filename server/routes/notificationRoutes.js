@@ -1,39 +1,26 @@
 import express from "express";
 import * as notificationController from "../controllers/notificationController.js";
-import { protect, authorize } from "../middleware/authMiddleware.js";
+import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-console.log("🔔 Setting up notification routes...");
+console.log("🔔 Setting up CS department notification routes...");
 
-// Test route to verify routing is working
-router.get("/test", (req, res) => {
-  console.log("🔔 Test route hit!");
-  res.json({ message: "Notification routes are working!" });
+// Debug middleware for notification routes
+router.use((req, res, next) => {
+  console.log(`🔔 Notification Route: ${req.method} ${req.path}`);
+  console.log(`🔔 User:`, req.user?._id);
+  next();
 });
 
 // All routes require authentication
 router.use(protect);
 
 // Get user's notifications
-router.get(
-  "/",
-  (req, res, next) => {
-    console.log("🔔 GET /api/notifications/ - getUserNotifications");
-    next();
-  },
-  notificationController.getUserNotifications
-);
+router.get("/", notificationController.getUserNotifications);
 
 // Get notification stats
-router.get(
-  "/stats",
-  (req, res, next) => {
-    console.log("🔔 GET /api/notifications/stats - getNotificationStats");
-    next();
-  },
-  notificationController.getNotificationStats
-);
+router.get("/stats", notificationController.getNotificationStats);
 
 // Mark notification as read
 router.patch("/:id/read", notificationController.markNotificationAsRead);
@@ -42,16 +29,6 @@ router.patch("/:id/read", notificationController.markNotificationAsRead);
 router.patch(
   "/mark-all-read",
   notificationController.markAllNotificationsAsRead
-);
-
-// Delete notification
-router.delete("/:id", notificationController.deleteNotification);
-
-// Create notification (admin/main_office/drc_chair only)
-router.post(
-  "/",
-  authorize(["admin", "main_office", "drc_chair"]),
-  notificationController.createNotification
 );
 
 export default router;

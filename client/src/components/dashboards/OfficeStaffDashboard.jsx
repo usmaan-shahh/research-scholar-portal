@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import FacultySection from "../admin/sections/FacultySection";
 import ScholarsSection from "../admin/sections/ScholarsSection";
+import NotificationDropdown from "../notifications/NotificationDropdown";
 
 const OfficeStaffDashboard = () => {
   const { user } = useSelector((state) => state.auth);
@@ -39,20 +40,25 @@ const OfficeStaffDashboard = () => {
       {/* Header Section - Matching Admin Dashboard */}
       <div className="max-w-7xl mx-auto">
         <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl border border-white/20 p-8 mb-8">
-          <div className="text-center">
-            <h1 className="text-4xl font-bold text-gray-800 mb-3 tracking-tight">
-              Main Office Dashboard
-            </h1>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Managing{" "}
-              <span className="font-semibold text-blue-600">
-                {user?.departmentCode}
-              </span>{" "}
-              department with comprehensive faculty and scholar oversight
-            </p>
-            <div className="mt-4 inline-flex items-center px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-              <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
-              Main Office User Access
+          <div className="flex items-center justify-between">
+            <div className="text-center flex-1">
+              <h1 className="text-4xl font-bold text-gray-800 mb-3 tracking-tight">
+                Main Office Dashboard
+              </h1>
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                Managing{" "}
+                <span className="font-semibold text-blue-600">
+                  {user?.departmentCode}
+                </span>{" "}
+                department with comprehensive faculty and scholar oversight
+              </p>
+              <div className="mt-4 inline-flex items-center px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                Main Office User Access
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <NotificationDropdown />
             </div>
           </div>
         </div>

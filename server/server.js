@@ -11,6 +11,7 @@ import departmentRoutes from "./routes/departmentRoutes.js";
 import facultyRoutes from "./routes/facultyRoutes.js";
 import scholarRoutes from "./routes/scholarRoutes.js";
 import drcMeetingRoutes from "./routes/drcMeetingRoutes.js";
+import notificationRoutes from "./routes/notificationRoutes.js";
 import connectDB from "./configuration/connectDB.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -34,14 +35,49 @@ if (!fs.existsSync(minutesDir)) {
 // Middleware
 app.use(express.json());
 app.use(cookieParser());
+
+// Enhanced CORS configuration
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: ["http://localhost:5173", "http://localhost:3000"],
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: [
+      "Content-Type", 
+      "Authorization", 
+      "X-Requested-With",
+      "Accept",
+      "Origin"
+    ],
+    exposedHeaders: ["Set-Cookie"],
+    preflightContinue: false,
+    optionsSuccessStatus: 200
   })
 );
+
+// Handle preflight requests
+app.options("*", cors());
+
+// Debug middleware for CORS issues
+app.use((req, res, next) => {
+  console.log(`🔔 ${req.method} ${req.path} - Origin: ${req.headers.origin}`);
+  console.log(`🔔 Method: ${req.method}`);
+  console.log(`🔔 Path: ${req.path}`);
+  console.log(`🔔 Headers:`, req.headers);
+  
+  // Handle preflight OPTIONS request
+  if (req.method === "OPTIONS") {
+    console.log("🔔 Handling OPTIONS preflight request");
+    res.header("Access-Control-Allow-Origin", req.headers.origin);
+    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
+    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With, Accept, Origin");
+    res.header("Access-Control-Allow-Credentials", "true");
+    res.status(200).end();
+    return;
+  }
+  
+  next();
+});
 
 // Serve uploaded files
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
@@ -53,6 +89,7 @@ app.use("/api/departments", departmentRoutes);
 app.use("/api/faculties", facultyRoutes);
 app.use("/api/scholars", scholarRoutes);
 app.use("/api/drc-meetings", drcMeetingRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

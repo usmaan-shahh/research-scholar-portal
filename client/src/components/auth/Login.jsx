@@ -270,7 +270,7 @@ const Login = () => {
         {/* Footer */}
         <div className="mt-10 text-center">
           <p className="text-sm text-gray-500 font-medium">
-            © 2024 Islamic University of Science and Technology
+            © 2025 Islamic University of Science and Technology
           </p>
           <p className="text-xs text-gray-400 mt-1">All rights reserved</p>
         </div>

@@ -3,53 +3,38 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 export const notificationApi = createApi({
   reducerPath: "notificationApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: "http://localhost:5000/api/notifications",
+    baseUrl: "http://localhost:5000/api",
     credentials: "include",
+    mode: "cors",
+    headers: {
+      "Content-Type": "application/json",
+    },
   }),
   tagTypes: ["Notification"],
   endpoints: (builder) => ({
+    // Get user notifications
     getUserNotifications: builder.query({
-      query: (params) => ({
-        url: "/",
-        params,
+      query: ({ page = 1, limit = 20, unreadOnly = false } = {}) => ({
+        url: `/notifications?page=${page}&limit=${limit}&unreadOnly=${unreadOnly}`,
+        method: "GET",
       }),
       providesTags: ["Notification"],
     }),
 
-    getNotificationStats: builder.query({
-      query: () => "/stats",
-      providesTags: ["Notification"],
-    }),
-
+    // Mark notification as read
     markNotificationAsRead: builder.mutation({
-      query: (id) => ({
-        url: `/${id}/read`,
+      query: (notificationId) => ({
+        url: `/notifications/${notificationId}/read`,
         method: "PATCH",
       }),
       invalidatesTags: ["Notification"],
     }),
 
+    // Mark all notifications as read
     markAllNotificationsAsRead: builder.mutation({
       query: () => ({
-        url: "/mark-all-read",
+        url: `/notifications/mark-all-read`,
         method: "PATCH",
-      }),
-      invalidatesTags: ["Notification"],
-    }),
-
-    deleteNotification: builder.mutation({
-      query: (id) => ({
-        url: `/${id}`,
-        method: "DELETE",
-      }),
-      invalidatesTags: ["Notification"],
-    }),
-
-    createNotification: builder.mutation({
-      query: (notificationData) => ({
-        url: "/",
-        method: "POST",
-        body: notificationData,
       }),
       invalidatesTags: ["Notification"],
     }),
@@ -58,9 +43,6 @@ export const notificationApi = createApi({
 
 export const {
   useGetUserNotificationsQuery,
-  useGetNotificationStatsQuery,
   useMarkNotificationAsReadMutation,
   useMarkAllNotificationsAsReadMutation,
-  useDeleteNotificationMutation,
-  useCreateNotificationMutation,
 } = notificationApi;
